@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 /* Add this to your main CSS file */
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
