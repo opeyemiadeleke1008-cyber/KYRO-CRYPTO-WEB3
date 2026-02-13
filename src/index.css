@@ -1,0 +1,32 @@
+@import "tailwindcss";
+/* Add this to your main CSS file */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;/* IE and Edge */
+    scrollbar-width: 2%;  /* Firefox */
+  }
+  /* Width of the entire scrollbar */
+.scrollbar-hidden::-webkit-scrollbar {
+  width: 5px; 
+}
+
+/* The track (background) */
+.scrollbar-hidden::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+/* The thumb (the draggable part) */
+.scrollbar-hidden::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px; /* Optional: adds a rounded look */
+}
+
+/* Handle on hover */
+.scrollbar-hidden::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+}
