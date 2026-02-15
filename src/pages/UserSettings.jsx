@@ -30,6 +30,8 @@ const UserSettings = () => {
       setUser({
         name: storedUser.name || "",
         email: storedUser.email || "",
+        password: storedUser.password || "",
+        referral: storedUser.referral || "",
         profilePic: storedUser.profilePic || ""
       });
       setPreviewImage(storedUser.profilePic || "");

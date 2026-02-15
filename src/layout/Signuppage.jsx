@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { X, User, Mail, Lock, Asterisk } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import SigninLoader from "../components/SigninLoader";
 
 const Signuppage = () => {
   const navigate = useNavigate();
 
   const [mode, setMode] = useState("signup");
+  const [signinLoading, setsigninLoading] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -18,7 +21,8 @@ const Signuppage = () => {
   const [strength, setStrength] = useState("");
   const [passMatch, setPassMatch] = useState(null);
   const [emailValid, setEmailValid] = useState(null);
-  const errorMessage = document.getElementById("message");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleChange = (e) => {
@@ -49,10 +53,10 @@ const Signuppage = () => {
     e.preventDefault();
 
     if (!emailValid) {
-      errorMessage.classList.add("text-red-500");
-      errorMessage.textContent = "Enter a valid email!";
+      setMessageType("error");
+      setMessage("Enter a valid email!");
       setTimeout(() => {
-        errorMessage.textContent = "";
+        setMessage("");
       }, 1500);
 
       return;
@@ -60,18 +64,18 @@ const Signuppage = () => {
 
     if (mode === "signup") {
       if (strength === "bad" || strength === "") {
-        errorMessage.classList.add("text-red-500");
-        errorMessage.textContent = "Password too weak";
+        setMessageType("error");
+        setMessage("Password too weak");
         setTimeout(() => {
-          errorMessage.textContent = "";
+          setMessage("");
         }, 1500);
         return;
       }
       if (!passMatch) {
-        errorMessage.classList.add("text-red-500");
-        errorMessage.textContent = "Passwords do not match";
+        setMessageType("error");
+        setMessage("Passwords do not match");
         setTimeout(() => {
-          errorMessage.textContent = "";
+          setMessage("");
         }, 1500);
         return;
       }
@@ -82,17 +86,15 @@ const Signuppage = () => {
           name: formData.fullName,
           email: formData.email,
           password: formData.password,
+          referral: formData.referral,
         }),
       );
 
-      errorMessage.classList.remove("text-red-500");
-      errorMessage.classList.add("text-green-500");
-      errorMessage.textContent = "Account created successfully!";
+      setShowSuccessMessage(true);
       setTimeout(() => {
-        errorMessage.textContent = "";
+        navigate("/user-dashboard");
       }, 1500);
       // REDIRECT TO DASHBOARD AFTER SIGNUP
-      navigate("/user-dashboard");
     } else {
       const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
       if (
@@ -100,23 +102,23 @@ const Signuppage = () => {
         storedUser.email === formData.email &&
         storedUser.password === formData.password
       ) {
-        localStorage.getItem("kyro_session", JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          isLoggedIn: true
-        }));
-        errorMessage.classList.add("text-green-500");
-        errorMessage.textContent = "Welcome back to kyro";
+        localStorage.getItem(
+          "kyro_session",
+          JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        );
+        setShowSuccessMessage(true);
         setTimeout(() => {
-          errorMessage.textContent = "";
+          navigate("/user-dashboard");
         }, 1500);
         // REDIRECT TO DASHBOARD AFTER SIGNIN
-        navigate("/user-dashboard");
       } else {
-        errorMessage.classList.add("text-red-500");
-        errorMessage.textContent = "Invalid Credentials";
+        setMessageType("error");
+        setMessage("Invalid Credentials");
         setTimeout(() => {
-          errorMessage.textContent = "";
+          setMessage("");
         }, 1500);
         return;
       }
@@ -309,7 +311,18 @@ const Signuppage = () => {
               </>
             )}
           </div>
-          <p id="message" className="text-sm text-center"></p>
+          <div className="text-sm text-center min-h-[20px]">
+            {showSuccessMessage ? (
+              <div className="flex items-center gap-2 flex-col">
+                <SigninLoader />
+                <span className="text-green-500">Welcome To Kyro</span>
+              </div>
+            ) : (
+              <span className={messageType === "error" ? "text-red-500" : ""}>
+                {message}
+              </span>
+            )}
+          </div>
 
           <button
             type="submit"

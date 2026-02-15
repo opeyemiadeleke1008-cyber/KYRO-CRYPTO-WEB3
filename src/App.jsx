@@ -33,6 +33,7 @@ import LineChart from "./components/LineChart";
 import WalletModal from "./components/WalletModal";
 import NotificationToast from "./components/NotificationToast";
 import AdminDashboard from "./pages/AdminDashboard";
+import SigninLoader from "./components/SigninLoader";
 
 function App() {
   useEffect(() => {
@@ -69,6 +70,7 @@ function App() {
       <Route path="/line-chart" element={<LineChart />} />
       <Route path="/wallet-modal" element={<WalletModal />} />
       <Route path="/notification-toast" element={<NotificationToast />} />
+      <Route path="/signin-loader" element={<SigninLoader />} />
 
       {/* Admin side */}
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
