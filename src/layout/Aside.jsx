@@ -44,7 +44,7 @@ const Aside = ({
   const location = useLocation(); // This gets the current URL path
 
   const handleLogout = () => {
-    localStorage.removeItem("kyro_user");
+    localStorage.removeItem("user_token");
     window.location.href = "/";
   };
 

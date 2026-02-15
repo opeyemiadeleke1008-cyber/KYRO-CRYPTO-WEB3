@@ -89,8 +89,8 @@ const Livemarket = () => {
         </div>
 
         {/* Ticker Tape Bottom */}
-        <div className="mt-8 overflow-hidden whitespace-nowrap border-y border-white/5 py-4 relative">
-          <div className="flex animate-marquee gap-12 items-center">
+        <div className="mt-8 overflow-hidden whitespace-nowrap border-y border-white/5 py-4 relative animate-marquee">
+          <div className="flex gap-8 items-center whitespace-nowrap">
              {[...prices, ...prices].map((coin, i) => (
                <div key={i} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tighter">
                  <span className="text-gray-500">{coin.id}/USDT</span>

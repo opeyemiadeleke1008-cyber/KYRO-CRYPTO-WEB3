@@ -59,18 +59,22 @@ const Signuppage = () => {
     }
 
     if (mode === "signup") {
-      if (strength === "bad" || strength === "")
-        return errorMessage.classList.add("text-red-500");
-      errorMessage.textContent = "Password too weak";
-      setTimeout(() => {
-        errorMessage.textContent = "";
-      }, 1500);
-      if (!passMatch) return;
-      errorMessage.classList.add("text-red-500");
-      errorMessage.textContent = "Passwords do not match";
-      setTimeout(() => {
-        errorMessage.textContent = "";
-      }, 1500);
+      if (strength === "bad" || strength === "") {
+        errorMessage.classList.add("text-red-500");
+        errorMessage.textContent = "Password too weak";
+        setTimeout(() => {
+          errorMessage.textContent = "";
+        }, 1500);
+        return;
+      }
+      if (!passMatch) {
+        errorMessage.classList.add("text-red-500");
+        errorMessage.textContent = "Passwords do not match";
+        setTimeout(() => {
+          errorMessage.textContent = "";
+        }, 1500);
+        return;
+      }
 
       localStorage.setItem(
         "kyro_user",
@@ -96,6 +100,11 @@ const Signuppage = () => {
         storedUser.email === formData.email &&
         storedUser.password === formData.password
       ) {
+        localStorage.getItem("kyro_session", JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          isLoggedIn: true
+        }));
         errorMessage.classList.add("text-green-500");
         errorMessage.textContent = "Welcome back to kyro";
         setTimeout(() => {

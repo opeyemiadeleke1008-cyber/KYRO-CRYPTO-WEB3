@@ -1,7 +1,7 @@
 import React from "react";
-import { useEffect } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import { Routes, Route } from "react-router-dom";
 import Landingpage from "./home/Landingpage";
 import Error from "./components/Error";
@@ -32,47 +32,50 @@ import UserNavbar from "./components/UserNavbar";
 import LineChart from "./components/LineChart";
 import WalletModal from "./components/WalletModal";
 import NotificationToast from "./components/NotificationToast";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
-
   useEffect(() => {
     AOS.init({ duration: 1000, once: true });
   }, []);
 
   return (
     <Routes>
-      <Route path="/" element={<Landingpage/>} />
-      <Route path="/loading" element={<Loading/>} />
-      <Route path="/header" element={<Header/>} />
-      <Route path="/hero" element={<Hero/>} />
-      <Route path="/about" element={<About/>} />
-      <Route path="/footer" element={<Footer/>} />   
-      <Route path="/signup" element={<Signuppage/>} />
-      <Route path="/security" element={<Security/>} />
-      <Route path="/faq" element={<Faq/>} />
-      <Route path="/aboutpage" element={<Aboutpage/>} />
-      <Route path="/features" element={<Features/>} />
-      <Route path="/testimonials" element={<Testimonials/>} />
-      <Route path="/membership" element={<Membership/>} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
-      <Route path="/terms-of-service" element={<Termsofservice/>} />
-      <Route path="/livemarket" element={<Livemarket/>} />
-      <Route path="/mobile-navbar" element={<MobileNavbar/>} />
-      <Route path="/user-dashboard" element={<Userdashboard/>} />
-      <Route path="/aside" element={<Aside/>} />
-      <Route path="/user-settings" element={<UserSettings/>} />
-      <Route path="/user-portfolio" element={<UserPorfolio/>} />
-      <Route path="/user-market" element={<UserMarket/>} />
-      <Route path="/user-mining" element={<UserMining/>} />
-      <Route path="/user-swap" element={<UserSwap/>} />
-      <Route path="/user-navbar" element={<UserNavbar/>} />
-      <Route path="/line-chart" element={<LineChart/>} />
-      <Route path="/wallet-modal" element={<WalletModal/>} />
-      <Route path="/notification-toast" element={<NotificationToast/>} />
+      <Route path="/" element={<Landingpage />} />
+      <Route path="/loading" element={<Loading />} />
+      <Route path="/header" element={<Header />} />
+      <Route path="/hero" element={<Hero />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/footer" element={<Footer />} />
+      <Route path="/signup" element={<Signuppage />} />
+      <Route path="/security" element={<Security />} />
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/aboutpage" element={<Aboutpage />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/testimonials" element={<Testimonials />} />
+      <Route path="/membership" element={<Membership />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<Termsofservice />} />
+      <Route path="/livemarket" element={<Livemarket />} />
+      <Route path="/mobile-navbar" element={<MobileNavbar />} />
+      <Route path="/user-dashboard" element={<Userdashboard />} />
+      <Route path="/aside" element={<Aside />} />
+      <Route path="/user-settings" element={<UserSettings />} />
+      <Route path="/user-portfolio" element={<UserPorfolio />} />
+      <Route path="/user-market" element={<UserMarket />} />
+      <Route path="/user-mining" element={<UserMining />} />
+      <Route path="/user-swap" element={<UserSwap />} />
+      <Route path="/user-navbar" element={<UserNavbar />} />
+      <Route path="/line-chart" element={<LineChart />} />
+      <Route path="/wallet-modal" element={<WalletModal />} />
+      <Route path="/notification-toast" element={<NotificationToast />} />
 
-      <Route path="*" element={<Error/>} />
+      {/* Admin side */}
+      <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+      <Route path="*" element={<Error />} />
     </Routes>
-  )
+  );
 }
 
 export default App;

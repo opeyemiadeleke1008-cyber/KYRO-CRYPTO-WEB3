@@ -56,7 +56,7 @@ const UserMarket = () => {
           <div>
             <h2 className="text-2xl font-bold tracking-tight uppercase italic text-orange-500">Market Trends</h2>
             <p className="text-gray-500 text-[10px] uppercase tracking-widest mt-1 flex items-center gap-2">
-              <Activity size={10} className="text-teal-500 animate-pulse" />
+              <Activity size={10} className="text-orange-500 animate-pulse" />
               Live Orderbook Active
             </p>
           </div>
@@ -84,7 +84,7 @@ const UserMarket = () => {
         </div>
 
         {/* Table Section */}
-        <div className="bg-[#0B0E14] border border-white/5 rounded-[2rem] p-6 mb-10 overflow-hidden shadow-2xl">
+        <div className="bg-[#0B0E14] border border-white/5 rounded-4xl p-6 mb-10 overflow-hidden shadow-2xl">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-bold uppercase tracking-widest">Live Assets Stream</h3>
             <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
