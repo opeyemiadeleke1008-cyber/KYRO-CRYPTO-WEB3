@@ -34,6 +34,7 @@ import WalletModal from "./components/WalletModal";
 import NotificationToast from "./components/NotificationToast";
 import AdminDashboard from "./pages/AdminDashboard";
 import SigninLoader from "./components/SigninLoader";
+import UserReferral from "./pages/UserReferral";
 
 function App() {
   useEffect(() => {
@@ -71,8 +72,9 @@ function App() {
       <Route path="/wallet-modal" element={<WalletModal />} />
       <Route path="/notification-toast" element={<NotificationToast />} />
       <Route path="/signin-loader" element={<SigninLoader />} />
+      <Route path="/user-referral" element={<UserReferral />} />
 
-      {/* Admin side */}
+      {/* Admin */}
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
       <Route path="*" element={<Error />} />
