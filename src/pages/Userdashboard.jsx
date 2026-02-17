@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Search, Bell, MoreHorizontal, UserIcon } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import {
+  fetchUserProfile,
+  migrateLocalStorageToFirebase,
+  saveUserProfile,
+} from "../services/userData";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
 const Userdashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState({
     name: "Operator",
     email: "",
@@ -16,32 +25,48 @@ const Userdashboard = () => {
   });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUid, setCurrentUid] = useState("");
   // const [activeTab, setActiveTab] = useState("Dashboard");
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
-    if (storedUser && storedUser.name) {
-      setUser({
-        name: storedUser.name,
-        profilePic: storedUser.profilePic || "",
-      });
-      setProfileData({
-        name: storedUser.name || "",
-        email: storedUser.email || "",
-        profilePic: storedUser.profilePic || "",
-      });
-    }
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (!authUser) {
+        navigate("/signup");
+        return;
+      }
 
-  const handleUpdateProfile = (e) => {
+      setCurrentUid(authUser.uid);
+      await migrateLocalStorageToFirebase(authUser.uid, authUser.email || "");
+      const profile = await fetchUserProfile(authUser.uid);
+
+      if (profile) {
+        setUser({
+          name: profile.name || "Operator",
+          email: profile.email || authUser.email || "",
+          profilePic: profile.profilePic || "",
+        });
+        setProfileData({
+          name: profile.name || "",
+          email: profile.email || authUser.email || "",
+          profilePic: profile.profilePic || "",
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    if (!currentUid) return;
+
     const updated = {
       ...user,
       name: profileData.name,
       email: profileData.email,
       profilePic: profileData.profilePic,
     };
-    localStorage.setItem("kyro_user", JSON.stringify(updated));
+    await saveUserProfile(currentUid, updated);
     setUser(updated);
     alert("IDENTITY SYNC: Success.");
   };

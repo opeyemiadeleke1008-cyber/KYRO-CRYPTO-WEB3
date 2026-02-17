@@ -16,6 +16,8 @@ import {
   Asterisk, // Changed Stone to Pickaxe (standard Lucide icon)
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useLocation
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 const NavItem = ({ icon, label, active, collapsed }) => (
   <div
@@ -46,7 +48,8 @@ const Aside = ({
   const location = useLocation(); // This gets the current URL path
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut(auth);
     localStorage.removeItem("user_token");
     navigate("/");
   };

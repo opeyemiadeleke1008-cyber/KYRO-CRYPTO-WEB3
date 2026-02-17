@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { X, User, Mail, Lock, Asterisk } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { auth } from "../firebase";
+import { migrateLocalStorageToFirebase, saveUserProfile } from "../services/userData";
 import SigninLoader from "../components/SigninLoader";
 
 const Signuppage = () => {
   const navigate = useNavigate();
-
-  const generateUserId = () => {
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
-    return `KYRO-${timestamp}-${randomPart}`;
-  };
 
   const [mode, setMode] = useState("signup");
   const [signinLoading, setsigninLoading] = useState(false);
@@ -55,10 +55,12 @@ const Signuppage = () => {
     }
   }, [formData.password, formData.confirmPassword]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const cleanEmail = formData.email.trim().toLowerCase();
+    const isEmailValid = emailRegex.test(cleanEmail);
 
-    if (!emailValid) {
+    if (!isEmailValid) {
       setMessageType("error");
       setMessage("Enter a valid email!");
       setTimeout(() => {
@@ -68,7 +70,9 @@ const Signuppage = () => {
       return;
     }
 
-    if (mode === "signup") {
+    try {
+      setsigninLoading(true);
+      if (mode === "signup") {
       if (strength === "bad" || strength === "") {
         setMessageType("error");
         setMessage("Password too weak");
@@ -86,49 +90,62 @@ const Signuppage = () => {
         return;
       }
 
-      localStorage.setItem(
-        "kyro_user",
-        JSON.stringify({
-          id: generateUserId(),
-          name: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          referral: formData.referral,
-        }),
-      );
-
-      setShowSuccessMessage(true);
-      setTimeout(() => {
-        navigate("/user-dashboard");
-      }, 1500);
-      // REDIRECT TO DASHBOARD AFTER SIGNUP
-    } else {
-      const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
-      if (
-        storedUser &&
-        storedUser.email === formData.email &&
-        storedUser.password === formData.password
-      ) {
-        localStorage.getItem(
-          "kyro_session",
-          JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          cleanEmail,
+          formData.password,
         );
+
+        try {
+          await saveUserProfile(userCredential.user.uid, {
+            name: formData.fullName,
+            email: cleanEmail,
+            referral: formData.referral,
+          });
+        } catch (profileError) {
+          console.error("Profile save failed after signup:", profileError);
+        }
+
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          navigate("/user-dashboard");
+        }, 1500);
+        // REDIRECT TO DASHBOARD AFTER SIGNUP
+      } else {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          cleanEmail,
+          formData.password,
+        );
+
+        // One-time migration of old local user/mining data into Firestore.
+        try {
+          await migrateLocalStorageToFirebase(userCredential.user.uid, cleanEmail);
+        } catch (migrationError) {
+          console.error("Local migration failed after signin:", migrationError);
+        }
+
         setShowSuccessMessage(true);
         setTimeout(() => {
           navigate("/user-dashboard");
         }, 1500);
         // REDIRECT TO DASHBOARD AFTER SIGNIN
-      } else {
-        setMessageType("error");
-        setMessage("Invalid Credentials");
-        setTimeout(() => {
-          setMessage("");
-        }, 1500);
-        return;
       }
+    } catch (error) {
+      setMessageType("error");
+      const code = error?.code || "";
+      if (code === "auth/email-already-in-use") setMessage("Email already in use");
+      else if (code === "auth/invalid-credential") setMessage("Invalid email or password");
+      else if (code === "auth/invalid-email") setMessage("Invalid email format");
+      else if (code === "auth/user-not-found") setMessage("Account not found");
+      else if (code === "auth/wrong-password") setMessage("Wrong password");
+      else if (code === "auth/too-many-requests") setMessage("Too many attempts. Try again later");
+      else setMessage("Authentication failed");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
+    } finally {
+      setsigninLoading(false);
     }
   };
 
@@ -333,9 +350,14 @@ const Signuppage = () => {
 
           <button
             type="submit"
+            disabled={signinLoading}
             className="bg-orange-500 hover:bg-orange-600 text-black px-6 py-4 rounded-xl transition-all w-full text-xs font-bold uppercase tracking-[0.2em] mt-6 shadow-xl shadow-orange-500/10 cursor-pointer"
           >
-            {mode === "signup" ? "Initialize Account" : "Authorize Session"}
+            {signinLoading
+              ? "Processing..."
+              : mode === "signup"
+                ? "Initialize Account"
+                : "Authorize Session"}
           </button>
         </form>
       </div>

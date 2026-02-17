@@ -1,17 +1,32 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { fetchUserProfile, migrateLocalStorageToFirebase } from "../services/userData";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
 const UserReferral = () => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userId, setUserId] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
-    setUserId(storedUser?.id || "");
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (!authUser) {
+        navigate("/signup");
+        return;
+      }
+
+      await migrateLocalStorageToFirebase(authUser.uid, authUser.email || "");
+      const profile = await fetchUserProfile(authUser.uid);
+      setUserId(profile?.id || "");
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const referralCode = useMemo(() => {
     if (!userId) return "";

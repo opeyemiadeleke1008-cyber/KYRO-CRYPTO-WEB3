@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Camera, Eye, EyeOff, Lock, Bell, Moon, Sun, Shield, User } from "lucide-react";
+import { onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, updatePassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { fetchUserProfile, migrateLocalStorageToFirebase, saveUserProfile } from "../services/userData";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
 const UserSettings = () => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState({ name: "", email: "", profilePic: "" });
   const [passwordData, setPasswordData] = useState({
@@ -23,20 +28,32 @@ const UserSettings = () => {
   });
   const [previewImage, setPreviewImage] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUid, setCurrentUid] = useState("");
   const fileInputRef = React.useRef(null);
+
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
-    if (storedUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (!authUser) {
+        navigate("/signup");
+        return;
+      }
+
+      setCurrentUid(authUser.uid);
+      await migrateLocalStorageToFirebase(authUser.uid, authUser.email || "");
+      const profile = await fetchUserProfile(authUser.uid);
+      if (!profile) return;
+
       setUser({
-        name: storedUser.name || "",
-        email: storedUser.email || "",
-        password: storedUser.password || "",
-        referral: storedUser.referral || "",
-        profilePic: storedUser.profilePic || ""
+        name: profile.name || "",
+        email: profile.email || authUser.email || "",
+        password: profile.password || "",
+        profilePic: profile.profilePic || "",
       });
-      setPreviewImage(storedUser.profilePic || "");
-    }
-  }, []);
+      setPreviewImage(profile.profilePic || "");
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
@@ -48,11 +65,12 @@ const UserSettings = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result;
-        setPreviewImage(imageUrl);
-        setUser({ ...user, profilePic: imageUrl });
-        // Update localStorage immediately to sync with dashboard
         const updatedUser = { ...user, profilePic: imageUrl };
-        localStorage.setItem("kyro_user", JSON.stringify(updatedUser));
+        setPreviewImage(imageUrl);
+        setUser(updatedUser);
+        if (currentUid) {
+          saveUserProfile(currentUid, updatedUser);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -61,8 +79,9 @@ const UserSettings = () => {
   const handlePersonalInfoChange = (field, value) => {
     const updatedUser = { ...user, [field]: value };
     setUser(updatedUser);
-    // Update localStorage immediately to sync with dashboard
-    localStorage.setItem("kyro_user", JSON.stringify(updatedUser));
+    if (currentUid) {
+      saveUserProfile(currentUid, updatedUser);
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -74,7 +93,7 @@ const UserSettings = () => {
     setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
       alert("Please fill in all password fields");
       return;
@@ -90,15 +109,39 @@ const UserSettings = () => {
       return;
     }
 
-    const updatedUser = { ...user, password: passwordData.newPassword };
-    localStorage.setItem("kyro_user", JSON.stringify(updatedUser));
-    
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    alert("Password updated successfully!");
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) {
+        alert("No active session found");
+        return;
+      }
+
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        passwordData.currentPassword,
+      );
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, passwordData.newPassword);
+
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      alert("Password updated successfully!");
+    } catch (error) {
+      alert(error?.message || "Unable to update password");
+    }
   };
 
-  const handleForgotPassword = () => {
-    alert("Password reset link has been sent to your email address.");
+  const handleForgotPassword = async () => {
+    try {
+      const email = auth.currentUser?.email || user.email;
+      if (!email) {
+        alert("No email found for reset");
+        return;
+      }
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset link has been sent to your email address.");
+    } catch (error) {
+      alert(error?.message || "Unable to send reset link");
+    }
   };
 
   const handleSettingToggle = (setting) => {

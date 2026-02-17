@@ -7,24 +7,29 @@ import {
   AlertTriangle,
   Pickaxe,
 } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import {
+  fetchUserProfile,
+  migrateLocalStorageToFirebase,
+  saveUserProfile,
+} from "../services/userData";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 import NotificationToast from "../components/NotificationToast";
 
 const UserMining = () => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentUid, setCurrentUid] = useState("");
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // --- PERSISTENT STATE ---
-  const [diamonds, setDiamonds] = useState(
-    () => Number(localStorage.getItem("mining_diamonds")) || 0,
-  );
-  const [streak, setStreak] = useState(
-    () => Number(localStorage.getItem("mining_streak")) || 0,
-  );
-  const [lastMined, setLastMined] = useState(
-    () => localStorage.getItem("mining_last_date") || "",
-  );
+  const [diamonds, setDiamonds] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [lastMined, setLastMined] = useState("");
   const [isMining, setIsMining] = useState(false);
 
   // --- TOAST STATE ---
@@ -44,12 +49,39 @@ const UserMining = () => {
   const today = new Date().toISOString().split("T")[0];
   const canMineToday = lastMined !== today;
 
-  // Sync state to localStorage
+  // Load authenticated user's mining state from Firestore.
   useEffect(() => {
-    localStorage.setItem("mining_diamonds", diamonds);
-    localStorage.setItem("mining_streak", streak);
-    localStorage.setItem("mining_last_date", lastMined);
-  }, [diamonds, streak, lastMined]);
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (!authUser) {
+        navigate("/signup");
+        return;
+      }
+
+      setCurrentUid(authUser.uid);
+      await migrateLocalStorageToFirebase(authUser.uid, authUser.email || "");
+      const profile = await fetchUserProfile(authUser.uid);
+      const mining = profile?.mining || {};
+
+      setDiamonds(Number(mining.diamonds) || 0);
+      setStreak(Number(mining.streak) || 0);
+      setLastMined(mining.lastMined || "");
+      setIsDataLoaded(true);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Sync mining state to Firestore.
+  useEffect(() => {
+    if (!currentUid || !isDataLoaded) return;
+    saveUserProfile(currentUid, {
+      mining: {
+        diamonds,
+        streak,
+        lastMined,
+      },
+    });
+  }, [currentUid, isDataLoaded, diamonds, streak, lastMined]);
 
   // Streak Reset Check
   useEffect(() => {
