@@ -35,6 +35,8 @@ import NotificationToast from "./components/NotificationToast";
 import AdminDashboard from "./pages/AdminDashboard";
 import SigninLoader from "./components/SigninLoader";
 import UserReferral from "./pages/UserReferral";
+import Notification from "./components/Notification";
+import AdminAside from "./components/AdminAside";
 
 function App() {
   useEffect(() => {
@@ -73,9 +75,11 @@ function App() {
       <Route path="/notification-toast" element={<NotificationToast />} />
       <Route path="/signin-loader" element={<SigninLoader />} />
       <Route path="/user-referral" element={<UserReferral />} />
+      <Route path="/notification" element={<Notification />} />
 
       {/* Admin */}
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
+      <Route path="/admin-aside" element={<AdminAside />} />
 
       <Route path="*" element={<Error />} />
     </Routes>

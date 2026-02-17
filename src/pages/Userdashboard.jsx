@@ -4,8 +4,16 @@ import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
 const Userdashboard = () => {
-  const [user, setUser] = useState({ name: "Operator", email: "", profilePic: "" });
-  const [profileData, setProfileData] = useState({ name: "", email: "", profilePic: "" });
+  const [user, setUser] = useState({
+    name: "Operator",
+    email: "",
+    profilePic: "",
+  });
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    profilePic: "",
+  });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // const [activeTab, setActiveTab] = useState("Dashboard");
@@ -13,11 +21,14 @@ const Userdashboard = () => {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("kyro_user"));
     if (storedUser && storedUser.name) {
-      setUser({ name: storedUser.name, profilePic: storedUser.profilePic || "" });
-      setProfileData({ 
-        name: storedUser.name || "", 
-        email: storedUser.email || "", 
-        profilePic: storedUser.profilePic || "" 
+      setUser({
+        name: storedUser.name,
+        profilePic: storedUser.profilePic || "",
+      });
+      setProfileData({
+        name: storedUser.name || "",
+        email: storedUser.email || "",
+        profilePic: storedUser.profilePic || "",
       });
     }
   }, []);
@@ -28,7 +39,7 @@ const Userdashboard = () => {
       ...user,
       name: profileData.name,
       email: profileData.email,
-      profilePic: profileData.profilePic
+      profilePic: profileData.profilePic,
     };
     localStorage.setItem("kyro_user", JSON.stringify(updated));
     setUser(updated);
@@ -46,17 +57,18 @@ const Userdashboard = () => {
     }
   };
 
+  const [notificationCount, setNotificationCount] = useState(0);
   return (
     <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
       {/* Mobile Navbar */}
-      <UserNavbar 
-        isMobileMenuOpen={isMobileMenuOpen} 
-        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+      <UserNavbar
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
-      
+
       {/* 1. SIDEBAR COMPONENT */}
-      <Aside 
-        isCollapsed={isCollapsed} 
+      <Aside
+        isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -68,7 +80,11 @@ const Userdashboard = () => {
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-[50%] border border-white/10 overflow-hidden bg-[#0B0E14] flex items-center justify-center">
               {user.profilePic ? (
-                <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" />
+                <img
+                  src={user.profilePic}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <UserIcon className="text-gray-600" size={24} />
               )}
@@ -79,8 +95,8 @@ const Userdashboard = () => {
               </h2>
               <p className="text-gray-500 text-xs uppercase tracking-widest">
                 Welcome back{" "}
-                <span className="text-white font-bold">{user.name}</span> <span className="text-green-500">//
-                System Active</span>
+                <span className="text-white font-bold">{user.name}</span>{" "}
+                <span className="text-green-500">// System Active</span>
               </p>
             </div>
           </div>
@@ -97,9 +113,14 @@ const Userdashboard = () => {
                 className="w-full bg-[#0B0E14] border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs outline-none focus:border-orange-500/50 transition-all text-white"
               />
             </div>
-            <button className="p-2 bg-[#0B0E14] border border-white/10 rounded-xl text-gray-400 hover:text-white cursor-pointer">
-              <Bell size={20} />
-            </button>
+            <div className="relative">
+              <button className="p-2 bg-[#0B0E14] border border-white/10 rounded-xl text-gray-400 hover:text-white cursor-pointer">
+                <Bell size={20} onClick={() => setNotificationCount(notificationCount + 1)}/>
+              </button>
+              {notificationCount > 0 && (
+                <span className="absolute -top-2.5 -right-2 p-1 h-5.5 w-5.5 items-center justify-center bg-orange-500 text-stone-50 rounded-full text-xs font-semibold flex">{notificationCount}</span>
+              )}
+            </div>
           </div>
         </header>
 

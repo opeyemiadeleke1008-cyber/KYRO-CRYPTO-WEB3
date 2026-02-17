@@ -6,6 +6,12 @@ import SigninLoader from "../components/SigninLoader";
 const Signuppage = () => {
   const navigate = useNavigate();
 
+  const generateUserId = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `KYRO-${timestamp}-${randomPart}`;
+  };
+
   const [mode, setMode] = useState("signup");
   const [signinLoading, setsigninLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -83,6 +89,7 @@ const Signuppage = () => {
       localStorage.setItem(
         "kyro_user",
         JSON.stringify({
+          id: generateUserId(),
           name: formData.fullName,
           email: formData.email,
           password: formData.password,

@@ -15,7 +15,7 @@ import {
   File,
   Asterisk, // Changed Stone to Pickaxe (standard Lucide icon)
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useLocation
 
 const NavItem = ({ icon, label, active, collapsed }) => (
   <div
@@ -44,10 +44,11 @@ const Aside = ({
   setIsMobileMenuOpen,
 }) => {
   const location = useLocation(); // This gets the current URL path
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("user_token");
-    window.location.href = "/";
+    navigate("/");
   };
 
   // Helper function to check if a link is active
@@ -182,13 +183,13 @@ const Aside = ({
           <div
             className={`mt-auto pt-10 shrink-0 ${isCollapsed ? "px-1" : "block"}`}
           >
-            <div className="bg-gradient-to-br from-orange-500/10 to-transparent p-4 rounded-2xl border border-orange-500/20">
+            <div className="bg-linear-to-br from-orange-500/10 to-transparent p-4 rounded-2xl border border-orange-500/20">
               {!isCollapsed ? (
                 <>
                   <p className="text-xs font-bold mb-1 text-center">
                     Membership
                   </p>
-                  <button className="w-full py-2 bg-orange-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all">
+                  <button className="w-full py-2 bg-orange-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all cursor-pointer" onClick={()=> navigate("/user-membership")}>
                     Get Started
                   </button>
                 </>
