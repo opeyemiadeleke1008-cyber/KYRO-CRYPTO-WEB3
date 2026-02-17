@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Aside from "../layout/Aside";
+import UserNavbar from "../components/UserNavbar";
 
 const UserReferral = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -32,6 +33,10 @@ const UserReferral = () => {
 
   return (
     <div className="bg-black text-white flex h-screen overflow-hidden">
+      <UserNavbar 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+      />
       <Aside
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
