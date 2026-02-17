@@ -4,7 +4,6 @@ import {
   Zap,
   Calendar,
   Trophy,
-  AlertTriangle,
   Pickaxe,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
@@ -15,6 +14,7 @@ import {
   migrateLocalStorageToFirebase,
   saveUserProfile,
 } from "../services/userData";
+import { createNotification } from "../services/notifications";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 import NotificationToast from "../components/NotificationToast";
@@ -38,12 +38,20 @@ const UserMining = () => {
     message: "",
   });
 
-  const showNotification = (msg) => {
+  const showNotification = (msg, type = "info") => {
     // Force reset if a toast is already open to ensure the new message triggers the animation
     setNotification({ isOpen: false, message: "" });
     setTimeout(() => {
       setNotification({ isOpen: true, message: msg });
     }, 10);
+
+    if (currentUid) {
+      createNotification(currentUid, {
+        title: "Mining Update",
+        message: msg,
+        type,
+      });
+    }
   };
 
   const today = new Date().toISOString().split("T")[0];
@@ -93,7 +101,7 @@ const UserMining = () => {
 
       if (diffDays > 1) {
         setStreak(0);
-        showNotification("Streak Reset: Protocol inactivity detected.");
+        showNotification("Streak Reset: Protocol inactivity detected.", "warning");
       }
     }
   }, [lastMined, today]);
@@ -101,7 +109,7 @@ const UserMining = () => {
   const handleMine = () => {
     // Replace silent return with a notification if they try to click while on cooldown
     if (!canMineToday) {
-      showNotification("Cooldown Active: Return in the next cycle.");
+      showNotification("Cooldown Active: Return in the next cycle.", "warning");
       return;
     }
 
@@ -124,7 +132,7 @@ const UserMining = () => {
       setIsMining(false);
 
       // Use Toast instead of alert
-      showNotification(msg);
+      showNotification(msg, "success");
     }, 2000);
   };
 

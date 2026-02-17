@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { Routes, Route } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 import Landingpage from "./home/Landingpage";
 import Error from "./components/Error";
 import Loading from "./components/Loading";
@@ -37,10 +39,25 @@ import SigninLoader from "./components/SigninLoader";
 import UserReferral from "./pages/UserReferral";
 import Notification from "./components/Notification";
 import AdminAside from "./components/AdminAside";
+import { fetchUserProfile } from "./services/userData";
+import { initializeTheme, setStoredTheme } from "./services/theme";
 
 function App() {
   useEffect(() => {
+    initializeTheme();
     AOS.init({ duration: 1000, once: true });
+
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (!authUser) return;
+      const profile = await fetchUserProfile(authUser.uid);
+      const darkMode = profile?.preferences?.darkMode;
+      if (typeof darkMode === "boolean") {
+        const nextTheme = darkMode ? "dark" : "light";
+        setStoredTheme(nextTheme);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (

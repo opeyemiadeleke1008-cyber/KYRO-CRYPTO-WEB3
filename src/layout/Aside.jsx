@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Wallet,
@@ -7,6 +7,7 @@ import {
   FileText,
   Calendar,
   Settings,
+  Bell,
   LogOut,
   Pickaxe,
   X,
@@ -16,10 +17,11 @@ import {
   Asterisk, // Changed Stone to Pickaxe (standard Lucide icon)
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useLocation
-import { signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { subscribeUnreadNotificationsCount } from "../services/notifications";
 
-const NavItem = ({ icon, label, active, collapsed }) => (
+const NavItem = ({ icon, label, active, collapsed, badgeCount = 0 }) => (
   <div
     className={`flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all group relative ${
       active
@@ -30,6 +32,15 @@ const NavItem = ({ icon, label, active, collapsed }) => (
     {icon}
     {!collapsed && (
       <span className="text-xs uppercase tracking-widest">{label}</span>
+    )}
+    {badgeCount > 0 && (
+      <span
+        className={`ml-auto bg-orange-500 text-black text-[10px] font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center ${
+          collapsed ? "absolute -top-1 -right-1" : ""
+        }`}
+      >
+        {badgeCount > 99 ? "99+" : badgeCount}
+      </span>
     )}
     {collapsed && (
       <div className="absolute left-16 bg-orange-500 text-black text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-all uppercase tracking-widest z-50 whitespace-nowrap shadow-xl">
@@ -47,6 +58,28 @@ const Aside = ({
 }) => {
   const location = useLocation(); // This gets the current URL path
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let unsubscribeUnread = () => {};
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+      unsubscribeUnread();
+      if (!authUser) {
+        setUnreadCount(0);
+        return;
+      }
+      unsubscribeUnread = subscribeUnreadNotificationsCount(
+        authUser.uid,
+        setUnreadCount,
+      );
+    });
+
+    return () => {
+      unsubscribeUnread();
+      unsubscribeAuth();
+    };
+  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -169,6 +202,16 @@ const Aside = ({
               label="Settings"
               active={isActive("/user-settings")}
               collapsed={isCollapsed}
+            />
+          </Link>
+
+          <Link to="/notification">
+            <NavItem
+              icon={<Bell size={18} />}
+              label="Notifications"
+              active={isActive("/notification")}
+              collapsed={isCollapsed}
+              badgeCount={unreadCount}
             />
           </Link>
 

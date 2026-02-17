@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { migrateLocalStorageToFirebase, saveUserProfile } from "../services/userData";
+import { createNotification } from "../services/notifications";
 import SigninLoader from "../components/SigninLoader";
 
 const Signuppage = () => {
@@ -102,6 +103,11 @@ const Signuppage = () => {
             email: cleanEmail,
             referral: formData.referral,
           });
+          await createNotification(userCredential.user.uid, {
+            title: "Account Created",
+            message: "Welcome to Kyro. Your account is ready.",
+            type: "success",
+          });
         } catch (profileError) {
           console.error("Profile save failed after signup:", profileError);
         }
@@ -121,6 +127,11 @@ const Signuppage = () => {
         // One-time migration of old local user/mining data into Firestore.
         try {
           await migrateLocalStorageToFirebase(userCredential.user.uid, cleanEmail);
+          await createNotification(userCredential.user.uid, {
+            title: "Signed In",
+            message: "You have successfully signed in.",
+            type: "success",
+          });
         } catch (migrationError) {
           console.error("Local migration failed after signin:", migrationError);
         }

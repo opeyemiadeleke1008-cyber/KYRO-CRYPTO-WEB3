@@ -8,6 +8,7 @@ import {
   migrateLocalStorageToFirebase,
   saveUserProfile,
 } from "../services/userData";
+import { subscribeUnreadNotificationsCount } from "../services/notifications";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
@@ -26,6 +27,7 @@ const Userdashboard = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUid, setCurrentUid] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
   // const [activeTab, setActiveTab] = useState("Dashboard");
 
   useEffect(() => {
@@ -56,6 +58,15 @@ const Userdashboard = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    if (!currentUid) return () => {};
+    const unsubscribe = subscribeUnreadNotificationsCount(
+      currentUid,
+      setUnreadCount,
+    );
+    return () => unsubscribe();
+  }, [currentUid]);
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (!currentUid) return;
@@ -82,7 +93,6 @@ const Userdashboard = () => {
     }
   };
 
-  const [notificationCount, setNotificationCount] = useState(0);
   return (
     <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
       {/* Mobile Navbar */}
@@ -139,11 +149,16 @@ const Userdashboard = () => {
               />
             </div>
             <div className="relative">
-              <button className="p-2 bg-[#0B0E14] border border-white/10 rounded-xl text-gray-400 hover:text-white cursor-pointer">
-                <Bell size={20} onClick={() => setNotificationCount(notificationCount + 1)}/>
+              <button
+                onClick={() => navigate("/notification")}
+                className="p-2 bg-[#0B0E14] border border-white/10 rounded-xl text-gray-400 hover:text-white cursor-pointer"
+              >
+                <Bell size={20} />
               </button>
-              {notificationCount > 0 && (
-                <span className="absolute -top-2.5 -right-2 p-1 h-5.5 w-5.5 items-center justify-center bg-orange-500 text-stone-50 rounded-full text-xs font-semibold flex">{notificationCount}</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 px-1 min-w-5 h-5 rounded-full bg-orange-500 text-black text-[10px] font-bold flex items-center justify-center">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
               )}
             </div>
           </div>
@@ -181,7 +196,7 @@ const Userdashboard = () => {
                   <p className="text-gray-500 text-[10px] uppercase font-bold tracking-widest">
                     Portfolio Value
                   </p>
-                  <h3 className="text-3xl font-black italic">+$28,345.00</h3>
+                  <h3 className="text-2xl font-black italic">+$<span className="text-orange-500 text-3xl"> 0</span></h3>
                 </div>
               </div>
               <div className="h-48 w-full bg-gradient-to-t from-orange-500/5 to-transparent rounded-xl border-b border-orange-500/20 flex items-end justify-center">
@@ -224,14 +239,14 @@ const Userdashboard = () => {
               </div>
               <div className="mt-4 justify-self-center">
                 <p className="uppercase p-8 rounded-[50%] h-15 w-15 flex items-center justify-center bg-gray-700 border-8 border-r-orange-500 border-t-orange-500 border-l-green-500 border-b-gray-500">
-                  24k
+                  {user?.diamonds || 0}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Recent Activity Table */}
-          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 mb-10">
+          {/* <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 mb-10">
             <h3 className="text-sm font-bold uppercase tracking-widest mb-6">
               Recent Activity
             </h3>
@@ -273,7 +288,7 @@ const Userdashboard = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

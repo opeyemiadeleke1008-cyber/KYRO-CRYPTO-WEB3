@@ -7,7 +7,6 @@ const AdminDashboard = () => {
   // --- Sidebar States ---
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [countNotification, setCountNotification] = useState(0);
 
   const stats = [
     { label: "Active Users", value: "24,847", change: "+12.5%", color: "text-orange-500" },
@@ -58,12 +57,7 @@ const AdminDashboard = () => {
             
             <div className="flex gap-2 md:gap-4 text-gray-500">
               <div className="relative p-2 hover:bg-white/5 hover:text-white rounded-lg cursor-pointer">
-                <Bell size={20} onClick={() => setCountNotification(countNotification + 1)}/>
-                {countNotification > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 items-center justify-center text-white bg-orange-500 rounded-full text-[10px] font-bold flex">
-                    {countNotification}
-                  </span>
-                )}
+                <Bell size={20} />
               </div>
               <Link to="/admin-settings">
                 <Gear size={20} className="p-2 hover:bg-white/5 rounded-lg cursor-pointer w-9 h-9 hover:text-white" />

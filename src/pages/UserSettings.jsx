@@ -4,6 +4,8 @@ import { onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential, se
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { fetchUserProfile, migrateLocalStorageToFirebase, saveUserProfile } from "../services/userData";
+import { createNotification } from "../services/notifications";
+import { getStoredTheme, setStoredTheme } from "../services/theme";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 
@@ -23,7 +25,7 @@ const UserSettings = () => {
   });
   const [settings, setSettings] = useState({
     notifications: true,
-    darkMode: true,
+    darkMode: getStoredTheme() === "dark",
     twoFactor: false
   });
   const [previewImage, setPreviewImage] = useState("");
@@ -46,10 +48,18 @@ const UserSettings = () => {
       setUser({
         name: profile.name || "",
         email: profile.email || authUser.email || "",
-        password: profile.password || "",
         profilePic: profile.profilePic || "",
       });
       setPreviewImage(profile.profilePic || "");
+      if (profile.preferences) {
+        const nextSettings = {
+          notifications: profile.preferences.notifications ?? true,
+          darkMode: profile.preferences.darkMode ?? true,
+          twoFactor: profile.preferences.twoFactor ?? false,
+        };
+        setSettings(nextSettings);
+        setStoredTheme(nextSettings.darkMode ? "dark" : "light");
+      }
     });
 
     return () => unsubscribe();
@@ -57,6 +67,11 @@ const UserSettings = () => {
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
+  };
+
+  const pushNotification = async (title, message, type = "info") => {
+    if (!currentUid) return;
+    await createNotification(currentUid, { title, message, type });
   };
 
   const handleFileChange = (event) => {
@@ -70,6 +85,7 @@ const UserSettings = () => {
         setUser(updatedUser);
         if (currentUid) {
           saveUserProfile(currentUid, updatedUser);
+          pushNotification("Profile Updated", "Profile picture changed.", "success");
         }
       };
       reader.readAsDataURL(file);
@@ -79,9 +95,21 @@ const UserSettings = () => {
   const handlePersonalInfoChange = (field, value) => {
     const updatedUser = { ...user, [field]: value };
     setUser(updatedUser);
-    if (currentUid) {
-      saveUserProfile(currentUid, updatedUser);
-    }
+  };
+
+  const handleUpdateInformation = async () => {
+    if (!currentUid) return;
+    await saveUserProfile(currentUid, {
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic,
+    });
+    await pushNotification(
+      "Profile Updated",
+      "Personal information was updated successfully.",
+      "success",
+    );
+    alert("Personal information updated successfully!");
   };
 
   const handlePasswordChange = (e) => {
@@ -124,8 +152,18 @@ const UserSettings = () => {
       await updatePassword(currentUser, passwordData.newPassword);
 
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      await pushNotification(
+        "Security Update",
+        "Password changed successfully.",
+        "success",
+      );
       alert("Password updated successfully!");
     } catch (error) {
+      await pushNotification(
+        "Security Error",
+        error?.message || "Unable to update password",
+        "error",
+      );
       alert(error?.message || "Unable to update password");
     }
   };
@@ -138,14 +176,39 @@ const UserSettings = () => {
         return;
       }
       await sendPasswordResetEmail(auth, email);
+      await pushNotification(
+        "Password Reset",
+        "Password reset link sent to your email.",
+        "info",
+      );
       alert("Password reset link has been sent to your email address.");
     } catch (error) {
+      await pushNotification(
+        "Password Reset Failed",
+        error?.message || "Unable to send reset link",
+        "error",
+      );
       alert(error?.message || "Unable to send reset link");
     }
   };
 
   const handleSettingToggle = (setting) => {
-    setSettings(prev => ({ ...prev, [setting]: !prev[setting] }));
+    setSettings((prev) => {
+      const next = { ...prev, [setting]: !prev[setting] };
+      if (setting === "darkMode") {
+        const nextTheme = next.darkMode ? "dark" : "light";
+        setStoredTheme(nextTheme);
+      }
+      if (currentUid) {
+        saveUserProfile(currentUid, { preferences: next });
+      }
+      pushNotification(
+        "Preferences Updated",
+        `${setting} was set to ${next[setting] ? "enabled" : "disabled"}.`,
+        "info",
+      );
+      return next;
+    });
   };
   return (
     <div className="bg-black text-white font-sans overflow-hidden flex h-screen">
@@ -226,7 +289,7 @@ const UserSettings = () => {
             />
           </div>
           <button 
-            onClick={() => alert("Personal information updated successfully!")}
+            onClick={handleUpdateInformation}
             className="mt-4 cursor-pointer px-4 py-2 bg-orange-500 text-black rounded-lg font-semibold hover:bg-orange-600 transition-colors"
           >
             Update Information
@@ -338,7 +401,11 @@ const UserSettings = () => {
 
             <div className="flex items-center justify-between p-4 bg-black/30 rounded-xl">
               <div className="flex items-center gap-3">
-                <Moon className="text-orange-500" size={20} />
+                {settings.darkMode ? (
+                  <Moon className="text-orange-500" size={20} />
+                ) : (
+                  <Sun className="text-orange-500" size={20} />
+                )}
                 <div>
                   <p className="text-white font-medium">Dark Mode</p>
                   <p className="text-gray-400 text-sm">Toggle dark mode theme</p>

@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 import LineChart from "../components/LineChart";
 import WalletModal from "../components/WalletModal";
 import NotificationToast from "../components/NotificationToast"; // Import Toast
+import { auth } from "../firebase";
+import { createNotification } from "../services/notifications";
 
 const UserPorfolio = () => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [timePeriod, setTimePeriod] = useState("24H");
@@ -13,6 +18,7 @@ const UserPorfolio = () => {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
+  const [currentUid, setCurrentUid] = useState("");
 
   // --- TOAST STATE ---
   const [notification, setNotification] = useState({ isOpen: false, message: "" });
@@ -25,17 +31,43 @@ const UserPorfolio = () => {
     }, 10);
   };
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      if (!authUser) {
+        navigate("/signup");
+        return;
+      }
+      setCurrentUid(authUser.uid);
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const pushNotification = async (title, message, type = "info") => {
+    if (!currentUid) return;
+    await createNotification(currentUid, { title, message, type });
+  };
+
   const handleConnect = (walletName) => {
     setIsConnected(true);
     setWalletAddress("0x71C...4E81");
     setIsWalletModalOpen(false);
     showNotification(`Connected to ${walletName} successfully`);
+    pushNotification(
+      "Wallet Connected",
+      `Connected to ${walletName} successfully.`,
+      "success",
+    );
   };
 
   // --- UPDATED ACTION HANDLER (No Alerts) ---
   const handleAssetAction = (asset, action) => {
     if (!isConnected) {
       showNotification("Authentication Required: Connect Wallet");
+      pushNotification(
+        "Wallet Required",
+        "You need to connect a wallet before this action.",
+        "warning",
+      );
       
       // Auto-open modal after toast appears
       setTimeout(() => {
@@ -52,7 +84,14 @@ const UserPorfolio = () => {
       trade: `Launching Trade Interface for ${asset}...`
     };
 
-    showNotification(actionMessages[action.toLowerCase()] || `${action} initiated for ${asset}`);
+    const message =
+      actionMessages[action.toLowerCase()] || `${action} initiated for ${asset}`;
+    showNotification(message);
+    pushNotification(
+      "Portfolio Action",
+      message,
+      "info",
+    );
   };
 
   const assetHoldings = [
@@ -85,7 +124,7 @@ const UserPorfolio = () => {
       <UserNavbar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
       <Aside isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
-      <main className="flex-1 overflow-y-auto bg-black p-4 md:p-8 w-full relative top-15 scrollbar-hidden">
+      <main className="flex-1 overflow-y-auto bg-black p-4 md:p-8 w-full relative top-15 md:top-0 scrollbar-hidden">
         <header className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold tracking-tight uppercase italic text-orange-500">
             Portfolio
@@ -106,6 +145,11 @@ const UserPorfolio = () => {
                 onClick={() => {
                   setIsConnected(false);
                   showNotification("Wallet Disconnected");
+                  pushNotification(
+                    "Wallet Disconnected",
+                    "Wallet connection was closed.",
+                    "info",
+                  );
                 }}
                 className="text-[10px] text-gray-500 hover:text-red-500 uppercase font-bold ml-2 transition-colors"
               >

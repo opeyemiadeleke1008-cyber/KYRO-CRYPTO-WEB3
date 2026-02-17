@@ -61,6 +61,13 @@ export const migrateLocalStorageToFirebase = async (uid, email = "") => {
       streak: existing.mining?.streak ?? legacyMining.streak,
       lastMined: existing.mining?.lastMined ?? legacyMining.lastMined,
     },
+    preferences: {
+      darkMode:
+        existing.preferences?.darkMode ??
+        localStorage.getItem("kyro_theme") !== "light",
+      notifications: existing.preferences?.notifications ?? true,
+      twoFactor: existing.preferences?.twoFactor ?? false,
+    },
     updatedAt: serverTimestamp(),
   };
 
