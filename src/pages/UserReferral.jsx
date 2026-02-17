@@ -45,8 +45,8 @@ const UserReferral = () => {
       />
 
       <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-        <h2 className="text-xl md:text-2xl font-bold uppercase tracking-widest mb-6">
-          Referral Center
+        <h2 className="text-2xl font-bold uppercase tracking-widest mb-6 text-orange-500">
+          Referral
         </h2>
 
         <div className="bg-[#0B0E14] border border-white/10 rounded-2xl p-6 max-w-2xl">
