@@ -41,6 +41,8 @@ import Notification from "./components/Notification";
 import AdminAside from "./components/AdminAside";
 import { fetchUserProfile } from "./services/userData";
 import { initializeTheme, setStoredTheme } from "./services/theme";
+import AdminSetting from "./pages/AdminSetting";
+import AdminSignin from "./pages/AdminSignin";
 
 function App() {
   useEffect(() => {
@@ -97,6 +99,8 @@ function App() {
       {/* Admin */}
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/admin-aside" element={<AdminAside />} />
+      <Route path="/admin-setting" element={<AdminSetting />} />
+      <Route path="/admin-signin" element={<AdminSignin />} />
 
       <Route path="*" element={<Error />} />
     </Routes>

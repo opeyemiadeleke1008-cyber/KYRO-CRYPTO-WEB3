@@ -12,14 +12,14 @@ const AdminAside = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/admin" },
-    { name: "Activity Monitor", icon: <Activity size={18} />, path: "/admin/activity" },
-    { name: "User Management", icon: <Users size={18} />, path: "/admin/users" },
-    { name: "Membership Management", icon: <UserCog size={18} />, path: "/admin/membership" },
-    { name: "Transaction History", icon: <History size={18} />, path: "/admin/transactions" },
-    { name: "Analytics & Reports", icon: <BarChart3 size={18} />, path: "/admin/analytics" },
-    { name: "Security Audit Logs", icon: <ShieldCheck size={18} />, path: "/admin/security" },
-    { name: "Admin Settings", icon: <Settings size={18} />, path: "/admin/settings" },
+    { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/admin-dashboard" },
+    { name: "Activity Monitor", icon: <Activity size={18} />, path: "/admin-activity" },
+    { name: "User Management", icon: <Users size={18} />, path: "/admin-users" },
+    { name: "Membership Management", icon: <UserCog size={18} />, path: "/admin-membership" },
+    { name: "Transaction History", icon: <History size={18} />, path: "/admin-transactions" },
+    { name: "Analytics & Reports", icon: <BarChart3 size={18} />, path: "/admin-analytics" },
+    { name: "Security Audit Logs", icon: <ShieldCheck size={18} />, path: "/admin-security" },
+    { name: "Admin Settings", icon: <Settings size={18} />, path: "/admin-setting" },
   ];
 
   return (
@@ -65,7 +65,7 @@ const AdminAside = () => {
 
       {/* Footer Section */}
       <div className="p-4 border-t border-white/10">
-        <button className={`flex items-center gap-3 w-full px-4 py-3 text-gray-500 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-widest ${isCollapsed ? "justify-center px-0" : ""}`}>
+        <button className={`flex items-center gap-3 w-full px-4 py-3 text-gray-500 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-widest cursor-pointer ${isCollapsed ? "justify-center px-0" : ""}`}>
           <LogOut size={18} />
           {!isCollapsed && <span>Terminate Session</span>}
         </button>
