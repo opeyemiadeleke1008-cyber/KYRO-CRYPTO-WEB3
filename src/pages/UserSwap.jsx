@@ -104,10 +104,10 @@ const UserSwap = () => {
 
       {/* --- TOKEN SELECTOR MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
           
-          <div className="relative w-full max-w-md bg-[#0B0E14] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-md bg-[#0B0E14] border border-white/10 rounded-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="p-6 border-b border-white/5 flex justify-between items-center">
               <h3 className="font-bold uppercase tracking-[0.2em] italic text-orange-500">Select Token</h3>

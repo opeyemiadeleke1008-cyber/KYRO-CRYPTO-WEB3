@@ -8,17 +8,25 @@ import WalletModal from "../components/WalletModal";
 import NotificationToast from "../components/NotificationToast"; // Import Toast
 import { auth } from "../firebase";
 import { createNotification } from "../services/notifications";
+import { useUserFinance } from "../context/UserFinanceContext";
 
 const UserPorfolio = () => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [timePeriod, setTimePeriod] = useState("24H");
-  
+  const [depositAmount, setDepositAmount] = useState("");
+
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
   const [currentUid, setCurrentUid] = useState("");
+  const {
+    wallet,
+    usdBalance,
+    assetHoldings,
+    connectWallet,
+    disconnectWallet,
+    depositFunds,
+  } = useUserFinance();
 
   // --- TOAST STATE ---
   const [notification, setNotification] = useState({ isOpen: false, message: "" });
@@ -48,20 +56,19 @@ const UserPorfolio = () => {
   };
 
   const handleConnect = (walletName) => {
-    setIsConnected(true);
-    setWalletAddress("0x71C...4E81");
+    const address = connectWallet(walletName);
     setIsWalletModalOpen(false);
     showNotification(`Connected to ${walletName} successfully`);
     pushNotification(
       "Wallet Connected",
-      `Connected to ${walletName} successfully.`,
+      `Connected to ${walletName} (${address}) successfully.`,
       "success",
     );
   };
 
   // --- UPDATED ACTION HANDLER (No Alerts) ---
   const handleAssetAction = (asset, action) => {
-    if (!isConnected) {
+    if (!wallet.connected) {
       showNotification("Authentication Required: Connect Wallet");
       pushNotification(
         "Wallet Required",
@@ -94,17 +101,29 @@ const UserPorfolio = () => {
     );
   };
 
-  const assetHoldings = [
-    { asset: "BTC", balance: "2.45673", value: "$43,256.78", change: "+3.3%", action: "Buy" },
-    { asset: "SOL", balance: "2.45673", value: "$43,256.78", change: "+3.3%", action: "Swap" },
-    { asset: "ETH", balance: "2.45673", value: "$43,256.78", change: "+3.3%", action: "Trade" },
-    { asset: "BNB", balance: "2.45673", value: "$43,256.78", change: "+3.3%", action: "Sell" },
-  ];
+  const totalValue = usdBalance;
 
-  const totalValue = assetHoldings.reduce(
-    (total, holding) => total + parseFloat(holding.value.replace("$", "").replace(",", "")),
-    0
-  );
+  const handleDeposit = () => {
+    if (!wallet.connected) {
+      setIsWalletModalOpen(true);
+      showNotification("Connect a wallet first to deposit.");
+      return;
+    }
+
+    const deposited = depositFunds(depositAmount);
+    if (!deposited) {
+      showNotification("Enter a valid deposit amount.");
+      return;
+    }
+
+    setDepositAmount("");
+    showNotification(`$${deposited.toFixed(2)} added to portfolio.`);
+    pushNotification(
+      "Deposit Successful",
+      `$${deposited.toFixed(2)} was added from ${wallet.name}.`,
+      "success",
+    );
+  };
 
   return (
     <div className="bg-black text-white flex font-sans overflow-hidden h-screen">
@@ -119,6 +138,7 @@ const UserPorfolio = () => {
         isOpen={isWalletModalOpen} 
         onClose={() => setIsWalletModalOpen(false)} 
         onSelect={handleConnect} 
+        connectedWallet={wallet.name}
       />
 
       <UserNavbar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
@@ -130,7 +150,7 @@ const UserPorfolio = () => {
             Portfolio
           </h2>
           
-          {!isConnected ? (
+          {!wallet.connected ? (
             <button 
               onClick={() => setIsWalletModalOpen(true)}
               className="bg-orange-500 hover:bg-orange-600 transition-all cursor-pointer font-bold text-xs px-4 py-2 rounded-lg shadow-lg shadow-orange-500/20 active:scale-95"
@@ -140,10 +160,12 @@ const UserPorfolio = () => {
           ) : (
             <div className="flex items-center gap-3 bg-[#0B0E14] border border-white/10 px-3 py-1.5 rounded-xl">
               <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-gray-300 tracking-tighter">{walletAddress}</span>
+              <span className="text-[10px] font-mono text-gray-300 tracking-tighter">
+                {wallet.address}
+              </span>
               <button 
                 onClick={() => {
-                  setIsConnected(false);
+                  disconnectWallet();
                   showNotification("Wallet Disconnected");
                   pushNotification(
                     "Wallet Disconnected",
@@ -167,7 +189,7 @@ const UserPorfolio = () => {
                 Portfolio Overview
               </h3>
               <p className="text-[10px] font-bold text-gray-200 bg-white/5 border border-white/10 rounded-full px-3 py-1 self-start uppercase tracking-widest">
-                <span className="text-orange-500">{isConnected ? "1" : "0"}</span> Wallet active
+                <span className="text-orange-500">{wallet.connected ? "1" : "0"}</span> Wallet active
               </p>
             </div>
             
@@ -190,8 +212,25 @@ const UserPorfolio = () => {
             <div>
               <p className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1">Total Equity</p>
               <p className="font-mono text-3xl font-black">
-                $<span className="text-white">{isConnected ? totalValue.toLocaleString() : "0.00"}</span>
+                $<span className="text-white">{totalValue.toFixed(2)}</span>
               </p>
+            </div>
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                placeholder="Deposit amount (USD)"
+                className="bg-black border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-orange-400/60"
+              />
+              <button
+                onClick={handleDeposit}
+                className="px-4 py-2 rounded-lg bg-orange-500 text-black text-xs font-bold hover:bg-orange-400 cursor-pointer"
+              >
+                Deposit
+              </button>
             </div>
           </div>
 
@@ -223,8 +262,8 @@ const UserPorfolio = () => {
                 className="flex justify-between items-center py-4 px-2 text-[11px] font-bold border-b border-white/5 transition-colors hover:bg-white/2"
               >
                 <p className="w-1/5 text-white">{holding.asset}</p>
-                <p className="w-1/5 font-mono text-gray-400">{holding.balance}</p>
-                <p className="w-1/5 font-mono text-gray-300">{holding.value}</p>
+                <p className="w-1/5 font-mono text-gray-400">{Number(holding.balance).toFixed(5)}</p>
+                <p className="w-1/5 font-mono text-gray-300">${Number(holding.value).toFixed(2)}</p>
                 <p className={`w-1/5 font-mono text-center ${holding.change.startsWith('+') ? 'text-teal-500' : 'text-red-500'}`}>
                   {holding.change}
                 </p>

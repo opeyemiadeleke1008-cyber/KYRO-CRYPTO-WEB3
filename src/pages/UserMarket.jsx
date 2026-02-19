@@ -133,11 +133,11 @@ const UserMarket = () => {
         <>
           {/* Overlay */}
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60"
             onClick={() => setSelectedAsset(null)}
           />
           {/* Drawer */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0B0E14] border-l border-white/10 z-[70] p-8 shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0B0E14] border-l border-white/10 z-70 p-8 shadow-2xl animate-in slide-in-from-right duration-300">
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-black italic">
@@ -201,7 +201,7 @@ const UserMarket = () => {
               <div className="pt-6 border-t border-white/5">
                 <div className="flex justify-between items-center text-[10px] font-bold text-gray-500 uppercase">
                   <span className="flex items-center gap-2"><Wallet size={12} /> Available Balance</span>
-                  <span className="text-white">$12,450.00 USD</span>
+                  <span className="text-white">$0</span>
                 </div>
               </div>
             </div>
@@ -227,7 +227,7 @@ const UserMarket = () => {
 
 /* --- UPDATED MARKET ROW --- */
 const MarketRow = ({ name, symbol, price, change, status, cap, onTrade }) => (
-  <tr className="group bg-white/[0.02] hover:bg-white/[0.05] transition-all">
+  <tr className="group bg-white/2 hover:bg-white/5 transition-all">
     <td className="py-4 pl-4 rounded-l-2xl border-y border-l border-white/5">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center font-bold text-orange-500 text-[10px]">

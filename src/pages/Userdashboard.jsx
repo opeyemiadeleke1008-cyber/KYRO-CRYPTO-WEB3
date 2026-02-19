@@ -11,6 +11,7 @@ import {
 import { subscribeUnreadNotificationsCount } from "../services/notifications";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
+import LineChart from "../components/LineChart";
 
 const Userdashboard = () => {
   const navigate = useNavigate();
@@ -197,12 +198,14 @@ const Userdashboard = () => {
                     Portfolio Value
                   </p>
                   <h3 className="text-2xl font-black italic">+$<span className="text-orange-500 text-3xl"> 0</span></h3>
+              
                 </div>
               </div>
-              <div className="h-48 w-full bg-gradient-to-t from-orange-500/5 to-transparent rounded-xl border-b border-orange-500/20 flex items-end justify-center">
-                <p className="text-orange-600 text-[10px] font-mono mb-4 animate-pulse">
+              <div className="h-48 w-full bg-linear-to-t from-orange-500/5 to-transparent rounded-xl border-b border-orange-500/20 flex items-end justify-center">
+              <LineChart />
+                {/* <p className="text-orange-600 text-[10px] font-mono mb-4 animate-pulse">
                   [ Live Portfolio Analytics Stream ]
-                </p>
+                </p> */}
               </div>
             </div>
 
@@ -244,51 +247,6 @@ const Userdashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Recent Activity Table */}
-          {/* <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 mb-10">
-            <h3 className="text-sm font-bold uppercase tracking-widest mb-6">
-              Recent Activity
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="text-gray-500 border-b border-white/5">
-                    <th className="pb-4 font-medium uppercase tracking-tighter">
-                      User Name
-                    </th>
-                    <th className="pb-4 font-medium uppercase tracking-tighter">
-                      Top Asset
-                    </th>
-                    <th className="pb-4 font-medium uppercase tracking-tighter">
-                      Gain/Loss
-                    </th>
-                    <th className="pb-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  <TableRow
-                    name="Theresa Webb"
-                    asset="ETH"
-                    change="+8.3%"
-                    status="pos"
-                  />
-                  <TableRow
-                    name="Bessie Cooper"
-                    asset="SOL"
-                    change="-3.2%"
-                    status="neg"
-                  />
-                  <TableRow
-                    name="Sarah Steper"
-                    asset="BTC"
-                    change="+12.5%"
-                    status="pos"
-                  />
-                </tbody>
-              </table>
-            </div>
-          </div> */}
         </div>
       </main>
     </div>
@@ -338,7 +296,7 @@ const AllocationRow = ({ label, percent, color }) => (
 );
 
 const TableRow = ({ name, asset, change, status }) => (
-  <tr className="group hover:bg-white/[0.02] transition-colors">
+  <tr className="group hover:bg-white/2 transition-colors">
     <td className="py-4 font-bold">{name}</td>
     <td className="py-4 text-gray-400">{asset}</td>
     <td

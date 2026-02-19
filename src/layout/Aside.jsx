@@ -20,6 +20,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"; // Import use
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { subscribeUnreadNotificationsCount } from "../services/notifications";
+import { useUserFinance } from "../context/UserFinanceContext";
 
 const NavItem = ({ icon, label, active, collapsed, badgeCount = 0 }) => (
   <div
@@ -59,6 +60,7 @@ const Aside = ({
   const location = useLocation(); // This gets the current URL path
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const { membershipTier } = useUserFinance();
 
   useEffect(() => {
     let unsubscribeUnread = () => {};
@@ -233,15 +235,15 @@ const Aside = ({
               {!isCollapsed ? (
                 <>
                   <p className="text-xs font-bold mb-1 text-center">
-                    Membership
+                    {membershipTier} Membership
                   </p>
                   <button className="w-full py-2 bg-orange-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all cursor-pointer tracking-widest" onClick={()=> navigate("/user-membership")}>
-                    Get Started
+                    {membershipTier === "Bronze" ? "Upgrade Plan" : "Manage Plan"}
                   </button>
                 </>
               ) : (
                 <button className="w-full aspect-square flex items-center justify-center bg-orange-500 text-black rounded-xl font-bold text-[10px] hover:bg-white transition-all">
-                  PRO
+                  {membershipTier.slice(0, 3).toUpperCase()}
                 </button>
               )}
             </div>

@@ -64,7 +64,7 @@ const About = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Hot List */}
-          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/[0.02] transition-colors">
+          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/2 transition-colors">
             <div className="flex items-center gap-2 mb-6">
                 <Flame size={16} className="text-orange-500 animate-pulse" />
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Hot List</p>
@@ -80,7 +80,7 @@ const About = () => {
           </div>
 
           {/* New Coin */}
-          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/[0.02] transition-colors">
+          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/2 transition-colors">
             <div className="flex items-center gap-2 mb-6">
                 <Sparkles size={16} className="text-orange-500" />
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">New Listings</p>
@@ -96,7 +96,7 @@ const About = () => {
           </div>
 
           {/* Top Gainers */}
-          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/[0.02] transition-colors">
+          <div className="bg-[#0B0E14] border border-white/5 rounded-3xl p-6 group hover:bg-white/2 transition-colors">
             <div className="flex items-center gap-2 mb-6">
                 <TrendingUp size={16} className="text-green-500" />
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Top Gainers</p>

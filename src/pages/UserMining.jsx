@@ -183,7 +183,7 @@ const UserMining = () => {
               className={`relative z-10 p-12 rounded-full border-4 border-dashed transition-colors duration-500 ${canMineToday ? "border-orange-500 animate-spin-slow" : "border-gray-800"}`}
             >
               <div
-                className={`w-32 h-32 rounded-full flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-700 shadow-[0_0_50px_rgba(249,115,22,0.3)] ${isMining ? "animate-bounce" : ""}`}
+                className={`w-32 h-32 rounded-full flex items-center justify-center bg-linear-to-br from-orange-500 to-orange-700 shadow-[0_0_50px_rgba(249,115,22,0.3)] ${isMining ? "animate-bounce" : ""}`}
               >
                 <Pickaxe size={48} className="text-black" />
               </div>
@@ -220,7 +220,7 @@ const UserMining = () => {
 
           <div className="space-y-6">
             {/* Streak Card */}
-            <div className="bg-[#0B0E14] border border-white/10 rounded-[2rem] p-6 relative overflow-hidden">
+            <div className="bg-[#0B0E14] border border-white/10 rounded-4xl p-6 relative overflow-hidden">
               <div className="flex justify-between items-start mb-4">
                 <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
                   Mining Streak
@@ -249,7 +249,7 @@ const UserMining = () => {
             </div>
 
             {/* Program Info */}
-            <div className="bg-orange-500/5 border border-orange-500/10 rounded-[2rem] p-6">
+            <div className="bg-orange-500/5 border border-orange-500/10 rounded-4xl p-6">
               <div className="flex items-center gap-3 mb-4 text-orange-500">
                 <Trophy size={20} />
                 <h4 className="text-xs font-black uppercase italic tracking-widest">

@@ -10,25 +10,45 @@ import {
 } from "lucide-react";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
+import WalletModal from "../components/WalletModal";
+import NotificationToast from "../components/NotificationToast";
+import { useUserFinance } from "../context/UserFinanceContext";
 
 const UserMembership = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [notification, setNotification] = useState({ isOpen: false, message: "" });
+  const {
+    membershipTier,
+    wallet,
+    usdBalance,
+    membershipPrices,
+    connectWallet,
+    depositAndUpgradeMembership,
+  } = useUserFinance();
+
+  const showNotification = (msg) => {
+    setNotification({ isOpen: false, message: "" });
+    setTimeout(() => {
+      setNotification({ isOpen: true, message: msg });
+    }, 10);
+  };
 
   const plans = [
     {
       name: "Bronze",
       price: "$0.00",
-      cta: "Current Plan",
       badge: "FREE",
-      ctaStyle: "bg-orange-400 hover:bg-orange-300 text-white",
+      ctaStyle: "bg-orange-400 hover:bg-orange-300 text-black",
       perks: ["Basic dashboard access", "Semi-annual reports", "Email support"],
     },
     {
       name: "Silver",
       price: "$19.99",
-      cta: "Upgrade Now",
       badge: "POPULAR",
       ctaStyle: "bg-white/10 hover:bg-white/20 text-white",
       perks: ["Priority dashboard", "Advanced analytics", "Monthly report pack"],
@@ -36,7 +56,6 @@ const UserMembership = () => {
     {
       name: "Gold",
       price: "$39.99",
-      cta: "Upgrade Now",
       badge: null,
       ctaStyle: "bg-white/10 hover:bg-white/20 text-white",
       perks: ["Full analytics suite", "Trading signal feed", "Dedicated support desk"],
@@ -44,7 +63,6 @@ const UserMembership = () => {
     {
       name: "Platinum",
       price: "$79.99",
-      cta: "Contact Sales",
       badge: null,
       ctaStyle: "bg-white/10 hover:bg-white/20 text-white",
       perks: ["Institutional tools", "VIP support", "Personal account manager"],
@@ -68,8 +86,71 @@ const UserMembership = () => {
     "Are there any setup fees or contracts?",
   ];
 
+  const handlePlanClick = (planName) => {
+    if (planName === membershipTier) {
+      showNotification(`${planName} is your current plan.`);
+      return;
+    }
+
+    if (planName === "Bronze") {
+      showNotification("Bronze is the free default membership.");
+      return;
+    }
+
+    setPendingPlan(planName);
+    setIsWalletModalOpen(true);
+  };
+
+  const handleConnectWallet = (walletName) => {
+    connectWallet(walletName);
+    setIsWalletModalOpen(false);
+    showNotification(`${walletName} connected. Add funds to continue.`);
+  };
+
+  const handleDepositAndUpgrade = () => {
+    if (!pendingPlan) {
+      showNotification("Choose a membership tier first.");
+      return;
+    }
+
+    if (!wallet.connected) {
+      setIsWalletModalOpen(true);
+      showNotification("Connect a wallet first.");
+      return;
+    }
+
+    const result = depositAndUpgradeMembership(pendingPlan, depositAmount);
+    if (result.reason === "Invalid deposit amount.") {
+      showNotification("Enter a valid deposit amount.");
+      return;
+    }
+
+    if (!result.ok) {
+      showNotification(
+        `Funds added, but ${pendingPlan} still needs $${membershipPrices[pendingPlan].toFixed(2)}.`,
+      );
+      setDepositAmount("");
+      return;
+    }
+
+    setDepositAmount("");
+    setPendingPlan("");
+    showNotification(`Upgraded to ${pendingPlan} successfully.`);
+  };
+
   return (
     <div className="flex h-screen bg-black text-white font-sans overflow-hidden relative">
+      <NotificationToast
+        isOpen={notification.isOpen}
+        message={notification.message}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+      />
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        onSelect={handleConnectWallet}
+        connectedWallet={wallet.name}
+      />
       <UserNavbar
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -91,6 +172,20 @@ const UserMembership = () => {
               Accelerate your mining rewards and unlock premium tools with our
               membership tiers
             </p>
+            <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+              <span className="px-2 py-1 rounded bg-white/5 border border-white/10">
+                Current: <span className="text-orange-400 font-bold">{membershipTier}</span>
+              </span>
+              <span className="px-2 py-1 rounded bg-white/5 border border-white/10">
+                Wallet:{" "}
+                <span className={wallet.connected ? "text-teal-400 font-bold" : "text-gray-400"}>
+                  {wallet.connected ? wallet.name : "Not connected"}
+                </span>
+              </span>
+              <span className="px-2 py-1 rounded bg-white/5 border border-white/10">
+                Balance: <span className="text-orange-400 font-bold">${usdBalance.toFixed(2)}</span>
+              </span>
+            </div>
           </header>
 
           <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -129,12 +224,47 @@ const UserMembership = () => {
                   ))}
                 </ul>
                 <button
+                  onClick={() => handlePlanClick(plan.name)}
                   className={`w-full py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer ${plan.ctaStyle}`}
                 >
-                  {plan.cta}
+                  {plan.name === membershipTier
+                    ? "Current Plan"
+                    : plan.name === "Bronze"
+                      ? "Basic Plan"
+                      : "Upgrade Now"}
                 </button>
               </article>
             ))}
+          </section>
+
+          <section className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3">
+            <h2 className="text-sm font-bold text-gray-200">Deposit for Membership (Dummy)</h2>
+            <p className="text-xs text-gray-400">
+              Select a paid tier, connect wallet, deposit dummy funds, and upgrade instantly.
+            </p>
+            <div className="flex flex-col md:flex-row gap-2">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                placeholder="Amount in USD"
+                className="bg-black border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-orange-400/60"
+              />
+              <button
+                onClick={handleDepositAndUpgrade}
+                className="px-4 py-2 rounded-lg bg-orange-400 text-black text-xs font-bold hover:bg-orange-300 cursor-pointer"
+              >
+                Deposit & Upgrade
+              </button>
+            </div>
+            {pendingPlan && (
+              <p className="text-[11px] text-gray-300">
+                Pending: <span className="text-orange-400 font-bold">{pendingPlan}</span> ($
+                {membershipPrices[pendingPlan].toFixed(2)})
+              </p>
+            )}
           </section>
 
           <section className="rounded-xl border border-white/10 bg-black/30 overflow-x-auto">
