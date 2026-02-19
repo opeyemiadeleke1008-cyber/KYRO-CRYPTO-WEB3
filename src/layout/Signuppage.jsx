@@ -166,7 +166,7 @@ const Signuppage = () => {
 
       <div className="flex w-[90%] mx-auto h-[85vh] z-10 shadow-2xl shadow-orange-500/5">
         <img
-          src="/img/kyroheroimg.jpg"
+          src="/public/img/kyroheroimg.jpg"
           alt="auth visual"
           className="w-[50%] h-full object-cover rounded-l-3xl hidden md:block border-y border-l border-white/10 opacity-60"
         />

@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, Check, Crown, Diamond, Rocket, Zap } from "lucide-react";
+import { ArrowLeft, Check, Crown, Diamond, Medal, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Membership = () => {
@@ -7,26 +7,34 @@ const Membership = () => {
 
   const tiers = [
     {
-      name: "Basic",
-      price: "Free",
-      icon: <Rocket size={24} />,
+      name: "Bronze",
+      price: "$9.99",
+      icon: <Shield size={24} />,
       features: ["0.1% Spot Trading Fee", "Standard Kyro Card", "Basic Market Analytics", "24/7 Support"],
-      buttonText: "Current Plan",
+      buttonText: "Current Basic Pro",
       highlight: false
     },
     {
-      name: "Pro",
-      price: "$29.99/mo",
-      icon: <Zap size={24} />,
-      features: ["0.05% Spot Trading Fee", "Metal Kyro Card", "Advanced AI Signals", "Priority Support", "2% Crypto Cashback"],
-      buttonText: "Upgrade to Pro",
+      name: "Silver",
+      price: "$19.99",
+      icon: <Medal size={24} />,
+      features: ["0.08% Spot Trading Fee", "Enhanced Card", "Advanced Analytics", "Priority Support", "1% Crypto Cashback"],
+      buttonText: "Upgrade to Silver",
       highlight: true
     },
     {
-      name: "Whale",
-      price: "Custom",
+      name: "Gold",
+      price: "$39.99",
       icon: <Diamond size={24} />,
-      features: ["0.01% Spot Trading Fee", "Premium Obsidian Card", "Direct OTC Access", "Personal Account Manager", "5% Crypto Cashback"],
+      features: ["0.05% Spot Trading Fee", "Premium Card", "Trading Signal Packs", "Faster Support", "2.5% Cashback"],
+      buttonText: "Upgrade to Gold",
+      highlight: false
+    },
+    {
+      name: "Platinum",
+      price: "$79.99",
+      icon: <Crown size={24} />,
+      features: ["0.01% Spot Trading Fee", "VIP Obsidian Card", "Direct OTC Access", "Personal Account Manager", "5% Crypto Cashback"],
       buttonText: "Contact Sales",
       highlight: false
     }
@@ -65,7 +73,7 @@ const Membership = () => {
 
       {/* Pricing Cards */}
       <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
           {tiers.map((tier, index) => (
             <div 
               key={index}
@@ -88,7 +96,7 @@ const Membership = () => {
               <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-4xl font-bold">{tier.price}</span>
-                {tier.price !== "Free" && tier.price !== "Custom" && <span className="text-gray-500 text-sm">/month</span>}
+                {tier.price !== "Custom" && <span className="text-gray-500 text-sm">/month</span>}
               </div>
 
               <ul className="space-y-4 mb-10">
@@ -121,7 +129,7 @@ const Membership = () => {
                 <p className="text-gray-400 text-xs leading-relaxed">Yes, all paid memberships are monthly subscriptions and can be downgraded at the end of your billing cycle.</p>
             </div>
             <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                <h4 className="font-bold mb-2 text-sm text-orange-500">How do I pay for the Pro plan?</h4>
+                <h4 className="font-bold mb-2 text-sm text-orange-500">How do I pay for the Silver/Gold/Platinum plans?</h4>
                 <p className="text-gray-400 text-xs leading-relaxed">Subscriptions can be paid via Credit Card or directly using your Kyro USDT/BTC wallet balance.</p>
             </div>
         </div>

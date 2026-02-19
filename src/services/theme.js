@@ -1,22 +1,27 @@
-const THEME_STORAGE_KEY = "kyro_theme";
+const LEGACY_THEME_STORAGE_KEY = "kyro_theme";
+const USER_THEME_STORAGE_KEY = "kyro_user_theme";
+const ADMIN_THEME_STORAGE_KEY = "kyro_admin_theme";
 
-export const applyTheme = (theme) => {
-  const safeTheme = theme === "light" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", safeTheme);
-  document.body.classList.toggle("theme-light", safeTheme === "light");
+const safeTheme = (theme) => (theme === "light" ? "light" : "dark");
+
+export const getStoredUserTheme = () => {
+  const stored =
+    localStorage.getItem(USER_THEME_STORAGE_KEY) ??
+    localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+  return safeTheme(stored);
 };
 
-export const getStoredTheme = () => {
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === "light" ? "light" : "dark";
+export const setStoredUserTheme = (theme) => {
+  const nextTheme = safeTheme(theme);
+  localStorage.setItem(USER_THEME_STORAGE_KEY, nextTheme);
+  localStorage.setItem(LEGACY_THEME_STORAGE_KEY, nextTheme);
 };
 
-export const setStoredTheme = (theme) => {
-  const safeTheme = theme === "light" ? "light" : "dark";
-  localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
-  applyTheme(safeTheme);
+export const getStoredAdminTheme = () => {
+  const stored = localStorage.getItem(ADMIN_THEME_STORAGE_KEY);
+  return safeTheme(stored);
 };
 
-export const initializeTheme = () => {
-  applyTheme(getStoredTheme());
+export const setStoredAdminTheme = (theme) => {
+  localStorage.setItem(ADMIN_THEME_STORAGE_KEY, safeTheme(theme));
 };

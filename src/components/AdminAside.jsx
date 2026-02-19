@@ -13,7 +13,6 @@ const AdminAside = () => {
 
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/admin-dashboard" },
-    { name: "Activity Monitor", icon: <Activity size={18} />, path: "/admin-activity" },
     { name: "User Management", icon: <Users size={18} />, path: "/admin-users" },
     { name: "Membership Management", icon: <UserCog size={18} />, path: "/admin-membership" },
     { name: "Transaction History", icon: <History size={18} />, path: "/admin-transactions" },

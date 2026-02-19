@@ -16,12 +16,13 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { fetchUserProfile, migrateLocalStorageToFirebase, saveUserProfile } from "../services/userData";
 import { createNotification } from "../services/notifications";
-import { getStoredTheme, setStoredTheme } from "../services/theme";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
+import { useTheme } from "../context/ThemeContext";
 
 const UserSettings = () => {
   const navigate = useNavigate();
+  const { userTheme, setUserTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [user, setUser] = useState({ name: "", email: "", profilePic: "" });
   const [passwordData, setPasswordData] = useState({
@@ -36,7 +37,7 @@ const UserSettings = () => {
   });
   const [settings, setSettings] = useState({
     notifications: true,
-    darkMode: getStoredTheme() === "dark",
+    darkMode: userTheme === "dark",
     kyc: false
   });
   const [kycData, setKycData] = useState({
@@ -79,7 +80,7 @@ const UserSettings = () => {
           kyc: profile.preferences.kyc ?? profile.preferences.twoFactor ?? false,
         };
         setSettings(nextSettings);
-        setStoredTheme(nextSettings.darkMode ? "dark" : "light");
+        setUserTheme(nextSettings.darkMode ? "dark" : "light");
       }
       if (profile.kyc) {
         setKycData({
@@ -94,7 +95,7 @@ const UserSettings = () => {
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, setUserTheme]);
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
@@ -228,7 +229,7 @@ const UserSettings = () => {
       const next = { ...prev, [setting]: !prev[setting] };
       if (setting === "darkMode") {
         const nextTheme = next.darkMode ? "dark" : "light";
-        setStoredTheme(nextTheme);
+        setUserTheme(nextTheme);
       }
       if (currentUid) {
         saveUserProfile(currentUid, { preferences: next });
@@ -445,7 +446,7 @@ const UserSettings = () => {
                 <Bell className="text-orange-500" size={20} />
                 <div>
                   <p className="text-white font-medium">Push Notifications</p>
-                  <p className="text-gray-400 text-sm">Receive notifications about your account</p>
+                  <p className="text-gray-400 text-sm">Receive notifications</p>
                 </div>
               </div>
               <button

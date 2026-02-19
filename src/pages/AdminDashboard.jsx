@@ -40,16 +40,19 @@ const getMembershipTier = (user) => {
     user.membershipTier || user.membership?.tier || user.plan || user.tier;
   if (explicitTier) {
     const normalized = String(explicitTier).toLowerCase();
-    if (normalized.includes("elite") || normalized.includes("whale"))
-      return "Elite";
-    if (normalized.includes("pro")) return "Pro";
-    return "Basic";
+    if (normalized.includes("platinum") || normalized.includes("elite") || normalized.includes("whale")) {
+      return "Platinum";
+    }
+    if (normalized.includes("gold")) return "Gold";
+    if (normalized.includes("silver") || normalized.includes("pro")) return "Silver";
+    return "Bronze";
   }
 
   const diamonds = Number(user?.mining?.diamonds || 0);
-  if (diamonds >= 120) return "Elite";
-  if (diamonds >= 30) return "Pro";
-  return "Basic";
+  if (diamonds >= 120) return "Platinum";
+  if (diamonds >= 70) return "Gold";
+  if (diamonds >= 30) return "Silver";
+  return "Bronze";
 };
 
 const AdminDashboard = () => {
@@ -138,7 +141,7 @@ const AdminDashboard = () => {
     let activeUsersToday = 0;
     let pendingKyc = 0;
     let verifiedKyc = 0;
-    const tiers = { Basic: 0, Pro: 0, Elite: 0 };
+    const tiers = { Bronze: 0, Silver: 0, Gold: 0, Platinum: 0 };
 
     users.forEach((user) => {
       const updatedAt = toDate(user.updatedAt) || toDate(user.createdAt);
@@ -251,10 +254,13 @@ const AdminDashboard = () => {
   };
 
   const totalMemberships =
-    metrics.tiers.Basic + metrics.tiers.Pro + metrics.tiers.Elite || 1;
-  const basicPercent = (metrics.tiers.Basic / totalMemberships) * 100;
-  const proPercent = (metrics.tiers.Pro / totalMemberships) * 100;
-  const elitePercent = (metrics.tiers.Elite / totalMemberships) * 100;
+    metrics.tiers.Bronze +
+      metrics.tiers.Silver +
+      metrics.tiers.Gold +
+      metrics.tiers.Platinum || 1;
+  const bronzePercent = (metrics.tiers.Bronze / totalMemberships) * 100;
+  const silverPercent = (metrics.tiers.Silver / totalMemberships) * 100;
+  const goldPercent = (metrics.tiers.Gold / totalMemberships) * 100;
 
   return (
     <div className="flex bg-black min-h-screen font-sans text-gray-300">
@@ -363,7 +369,7 @@ const AdminDashboard = () => {
                 <div
                   className="w-40 h-40 rounded-full relative"
                   style={{
-                    background: `conic-gradient(#3b82f6 0 ${basicPercent}%, #06b6d4 ${basicPercent}% ${basicPercent + proPercent}%, #f59e0b ${basicPercent + proPercent}% 100%)`,
+                    background: `conic-gradient(#9ca3af 0 ${bronzePercent}%, #06b6d4 ${bronzePercent}% ${bronzePercent + silverPercent}%, #f59e0b ${bronzePercent + silverPercent}% ${bronzePercent + silverPercent + goldPercent}%, #a855f7 ${bronzePercent + silverPercent + goldPercent}% 100%)`,
                   }}
                 >
                   <div className="absolute inset-6 rounded-full bg-[#0B0E14] border border-white/10 flex items-center justify-center text-center">
@@ -381,19 +387,24 @@ const AdminDashboard = () => {
 
               <div className="space-y-3">
                 <TierRow
-                  name="Basic"
-                  color="bg-blue-500"
-                  value={metrics.tiers.Basic}
+                  name="Bronze"
+                  color="bg-gray-400"
+                  value={metrics.tiers.Bronze}
                 />
                 <TierRow
-                  name="Pro"
+                  name="Silver"
                   color="bg-cyan-500"
-                  value={metrics.tiers.Pro}
+                  value={metrics.tiers.Silver}
                 />
                 <TierRow
-                  name="Elite"
+                  name="Gold"
                   color="bg-amber-500"
-                  value={metrics.tiers.Elite}
+                  value={metrics.tiers.Gold}
+                />
+                <TierRow
+                  name="Platinum"
+                  color="bg-purple-500"
+                  value={metrics.tiers.Platinum}
                 />
               </div>
             </section>

@@ -235,7 +235,7 @@ const Aside = ({
                   <p className="text-xs font-bold mb-1 text-center">
                     Membership
                   </p>
-                  <button className="w-full py-2 bg-orange-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all cursor-pointer" onClick={()=> navigate("/user-membership")}>
+                  <button className="w-full py-2 bg-orange-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all cursor-pointer tracking-widest" onClick={()=> navigate("/user-membership")}>
                     Get Started
                   </button>
                 </>

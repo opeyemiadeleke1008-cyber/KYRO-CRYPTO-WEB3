@@ -64,7 +64,8 @@ export const migrateLocalStorageToFirebase = async (uid, email = "") => {
     preferences: {
       darkMode:
         existing.preferences?.darkMode ??
-        localStorage.getItem("kyro_theme") !== "light",
+        (localStorage.getItem("kyro_user_theme") ??
+          localStorage.getItem("kyro_theme")) !== "light",
       notifications: existing.preferences?.notifications ?? true,
       kyc: existing.preferences?.kyc ?? existing.preferences?.twoFactor ?? false,
     },

@@ -40,13 +40,18 @@ import UserReferral from "./pages/UserReferral";
 import Notification from "./components/Notification";
 import AdminAside from "./components/AdminAside";
 import { fetchUserProfile } from "./services/userData";
-import { initializeTheme, setStoredTheme } from "./services/theme";
 import AdminSetting from "./pages/AdminSetting";
 import AdminSignin from "./pages/AdminSignin";
+import AdminSecurity from "./pages/AdminSecurity";
+import AdminMembership from "./pages/AdminMembership";
+import UserMembership from "./pages/UserMembership";
+import { useTheme } from "./context/ThemeContext";
+import { AdminThemeScope, UserThemeScope } from "./components/ThemeScopes";
 
 function App() {
+  const { setUserTheme } = useTheme();
+
   useEffect(() => {
-    initializeTheme();
     AOS.init({ duration: 1000, once: true });
 
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
@@ -54,13 +59,12 @@ function App() {
       const profile = await fetchUserProfile(authUser.uid);
       const darkMode = profile?.preferences?.darkMode;
       if (typeof darkMode === "boolean") {
-        const nextTheme = darkMode ? "dark" : "light";
-        setStoredTheme(nextTheme);
+        setUserTheme(darkMode ? "dark" : "light");
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [setUserTheme]);
 
   return (
     <Routes>
@@ -81,26 +85,29 @@ function App() {
       <Route path="/terms-of-service" element={<Termsofservice />} />
       <Route path="/livemarket" element={<Livemarket />} />
       <Route path="/mobile-navbar" element={<MobileNavbar />} />
-      <Route path="/user-dashboard" element={<Userdashboard />} />
-      <Route path="/aside" element={<Aside />} />
-      <Route path="/user-settings" element={<UserSettings />} />
-      <Route path="/user-portfolio" element={<UserPorfolio />} />
-      <Route path="/user-market" element={<UserMarket />} />
-      <Route path="/user-mining" element={<UserMining />} />
-      <Route path="/user-swap" element={<UserSwap />} />
-      <Route path="/user-navbar" element={<UserNavbar />} />
-      <Route path="/line-chart" element={<LineChart />} />
-      <Route path="/wallet-modal" element={<WalletModal />} />
-      <Route path="/notification-toast" element={<NotificationToast />} />
+      <Route path="/user-dashboard" element={<UserThemeScope><Userdashboard /></UserThemeScope>} />
+      <Route path="/aside" element={<UserThemeScope><Aside /></UserThemeScope>} />
+      <Route path="/user-settings" element={<UserThemeScope><UserSettings /></UserThemeScope>} />
+      <Route path="/user-portfolio" element={<UserThemeScope><UserPorfolio /></UserThemeScope>} />
+      <Route path="/user-market" element={<UserThemeScope><UserMarket /></UserThemeScope>} />
+      <Route path="/user-mining" element={<UserThemeScope><UserMining /></UserThemeScope>} />
+      <Route path="/user-swap" element={<UserThemeScope><UserSwap /></UserThemeScope>} />
+      <Route path="/user-navbar" element={<UserThemeScope><UserNavbar /></UserThemeScope>} />
+      <Route path="/line-chart" element={<UserThemeScope><LineChart /></UserThemeScope>} />
+      <Route path="/wallet-modal" element={<UserThemeScope><WalletModal /></UserThemeScope>} />
+      <Route path="/notification-toast" element={<UserThemeScope><NotificationToast /></UserThemeScope>} />
       <Route path="/signin-loader" element={<SigninLoader />} />
-      <Route path="/user-referral" element={<UserReferral />} />
-      <Route path="/notification" element={<Notification />} />
+      <Route path="/user-referral" element={<UserThemeScope><UserReferral /></UserThemeScope>} />
+      <Route path="/notification" element={<UserThemeScope><Notification /></UserThemeScope>} />
+      <Route path="/user-membership" element={<UserThemeScope><UserMembership /></UserThemeScope>} />
 
       {/* Admin */}
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/admin-aside" element={<AdminAside />} />
-      <Route path="/admin-setting" element={<AdminSetting />} />
-      <Route path="/admin-signin" element={<AdminSignin />} />
+      <Route path="/admin-dashboard" element={<AdminThemeScope><AdminDashboard /></AdminThemeScope>} />
+      <Route path="/admin-aside" element={<AdminThemeScope><AdminAside /></AdminThemeScope>} />
+      <Route path="/admin-setting" element={<AdminThemeScope><AdminSetting /></AdminThemeScope>} />
+      <Route path="/admin-signin" element={<AdminThemeScope><AdminSignin /></AdminThemeScope>} />
+      <Route path="/admin-security" element={<AdminThemeScope><AdminSecurity /></AdminThemeScope>} />
+      <Route path="/admin-membership" element={<AdminThemeScope><AdminMembership /></AdminThemeScope>} />
 
       <Route path="*" element={<Error />} />
     </Routes>

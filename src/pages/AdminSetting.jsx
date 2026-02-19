@@ -8,6 +8,8 @@ import {
   Shield,
   Trash2,
   UserPlus,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +32,7 @@ import {
   getAllowedRole,
   normalizeEmail,
 } from "../services/adminAccess";
+import { useTheme } from "../context/ThemeContext";
 
 const tabs = [
   "Administrator Accounts",
@@ -64,6 +67,7 @@ const defaultPermissions = Object.values(permissionGroups)
 
 const AdminSetting = () => {
   const navigate = useNavigate();
+  const { adminTheme, setAdminTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("Administrator Accounts");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
@@ -219,6 +223,12 @@ const AdminSetting = () => {
     showSavedNotice("Permission matrix saved");
   };
 
+  const isLightMode = adminTheme === "light";
+
+  const handleThemeToggle = () => {
+    setAdminTheme(isLightMode ? "dark" : "light");
+  };
+
   return (
     <div className="flex min-h-screen bg-black text-white font-sans">
       <AdminAside />
@@ -233,8 +243,15 @@ const AdminSetting = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="text-[11px] px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:text-white transition-colors flex items-center gap-2 cursor-pointer">
-              <RefreshCw size={13} />
+            <button
+              onClick={handleThemeToggle}
+              className="text-[11px] px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              {isLightMode ? <Sun size={13} /> : <Moon size={13} />}
+              {isLightMode ? "Light Mode" : "Dark Mode"}
+            </button>
+            <button className="text-[11px] px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:text-white transition-colors flex items-center gap-2 cursor-pointer group">
+              <RefreshCw size={13} className="group-hover:rotate-180 transition-transform duration-300"/>
               Recent Changes
             </button>
             <button className="text-[11px] px-3 py-2 rounded-lg bg-orange-500 text-black font-bold hover:bg-orange-400 transition-colors flex items-center gap-2 cursor-pointer">
