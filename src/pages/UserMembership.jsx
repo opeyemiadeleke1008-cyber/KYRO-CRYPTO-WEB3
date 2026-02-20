@@ -360,7 +360,7 @@ const UserMembership = () => {
               <h2 className="text-sm font-bold text-gray-200">
                 Calculate Your Potential Earnings
               </h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2 md:flex-row flex-col">
                 <input
                   type="number"
                   defaultValue={100}

@@ -11,6 +11,7 @@ import {
 import { subscribeUnreadNotificationsCount } from "../services/notifications";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
+import NotificationToast from "../components/NotificationToast";
 import LineChart from "../components/LineChart";
 
 const Userdashboard = () => {
@@ -29,6 +30,11 @@ const Userdashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUid, setCurrentUid] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    message: "",
+    type: "info",
+  });
   // const [activeTab, setActiveTab] = useState("Dashboard");
 
   useEffect(() => {
@@ -80,7 +86,14 @@ const Userdashboard = () => {
     };
     await saveUserProfile(currentUid, updated);
     setUser(updated);
-    alert("IDENTITY SYNC: Success.");
+    setNotification({ isOpen: false, message: "", type: "info" });
+    setTimeout(() => {
+      setNotification({
+        isOpen: true,
+        message: "IDENTITY SYNC: Success.",
+        type: "success",
+      });
+    }, 10);
   };
 
   const handleImageUpload = (e) => {
@@ -96,6 +109,12 @@ const Userdashboard = () => {
 
   return (
     <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
+      <NotificationToast
+        isOpen={notification.isOpen}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+      />
       {/* Mobile Navbar */}
       <UserNavbar
         isMobileMenuOpen={isMobileMenuOpen}

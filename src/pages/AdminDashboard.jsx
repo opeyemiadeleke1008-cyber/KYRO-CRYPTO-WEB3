@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock3,
+  X,
 } from "lucide-react";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -65,6 +66,7 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [updatingKycFor, setUpdatingKycFor] = useState("");
+  const [selectedKycUser, setSelectedKycUser] = useState(null);
   const [syncError, setSyncError] = useState("");
 
   useEffect(() => {
@@ -233,7 +235,7 @@ const AdminDashboard = () => {
   const handleKycDecision = async (user, status) => {
     try {
       setUpdatingKycFor(user.uid);
-      await updateDoc(doc(db, "users", user.uid), {
+      await updateDoc(doc(db, user._source || "users", user.uid), {
         kyc: {
           ...(user.kyc || {}),
           status,
@@ -245,12 +247,18 @@ const AdminDashboard = () => {
         message:
           status === "Verified"
             ? "Your KYC has been approved by admin."
-            : "Your KYC needs corrections. Please update and resubmit.",
-        type: status === "Verified" ? "success" : "warning",
+            : "Your KYC has been rejected. Please update your documents and resubmit.",
+        type: status === "Verified" ? "success" : "error",
       });
+
+      setSelectedKycUser(null);
     } finally {
       setUpdatingKycFor("");
     }
+  };
+
+  const handleReviewKyc = (user) => {
+    setSelectedKycUser(user);
   };
 
   const totalMemberships =
@@ -264,6 +272,70 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex bg-black min-h-screen font-sans text-gray-300">
+      {selectedKycUser && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSelectedKycUser(null)}
+          />
+          <div className="relative w-full max-w-2xl bg-[#0B0E14] border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-white">
+                KYC Review
+              </h3>
+              <button
+                onClick={() => setSelectedKycUser(null)}
+                className="text-gray-500 hover:text-white cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <InfoRow label="Name" value={selectedKycUser.kyc?.legalName || "Not provided"} />
+              <InfoRow label="Email" value={selectedKycUser.email || "No email"} />
+              <InfoRow label="Country" value={selectedKycUser.kyc?.country || "Not provided"} />
+              <InfoRow label="ID Type" value={selectedKycUser.kyc?.idType || "Not provided"} />
+              <InfoRow label="ID Number" value={selectedKycUser.kyc?.idNumber || "Not provided"} />
+              <InfoRow label="Document" value={selectedKycUser.kyc?.documentName || "Not uploaded"} />
+            </div>
+
+            <div className="mt-4">
+              <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">
+                Submitted Document Preview
+              </p>
+              {selectedKycUser.kyc?.documentPreview ? (
+                <img
+                  src={selectedKycUser.kyc.documentPreview}
+                  alt="KYC document"
+                  className="w-full max-h-64 object-contain rounded-xl border border-white/10 bg-black/40"
+                />
+              ) : (
+                <div className="w-full h-24 border border-white/10 rounded-xl bg-black/30 flex items-center justify-center text-xs text-gray-500">
+                  No image preview submitted by user.
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => handleKycDecision(selectedKycUser, "Verified")}
+                disabled={updatingKycFor === selectedKycUser.uid}
+                className="bg-teal-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-teal-400 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => handleKycDecision(selectedKycUser, "Rejected")}
+                disabled={updatingKycFor === selectedKycUser.uid}
+                className="bg-red-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-red-400 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <AdminAside />
 
       <main className="flex-1 min-w-0 overflow-y-auto">
@@ -442,18 +514,11 @@ const AdminDashboard = () => {
                     </p>
                     <div className="flex gap-2 mt-3">
                       <button
-                        onClick={() => handleKycDecision(user, "Verified")}
+                        onClick={() => handleReviewKyc(user)}
                         disabled={updatingKycFor === user.uid}
-                        className="bg-teal-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-teal-400 transition-colors disabled:opacity-50 cursor-pointer"
+                        className="bg-blue-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-400 transition-colors disabled:opacity-50 cursor-pointer"
                       >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleKycDecision(user, "Needs Review")}
-                        disabled={updatingKycFor === user.uid}
-                        className="bg-orange-500 text-black px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-orange-400 transition-colors disabled:opacity-50 cursor-pointer"
-                      >
-                        Request Update
+                        Review KYC
                       </button>
                     </div>
                   </div>
@@ -553,6 +618,13 @@ const HealthRow = ({ icon, label, value, tone }) => (
       </p>
       <p className={`text-sm font-bold ${tone}`}>{value}</p>
     </div>
+  </div>
+);
+
+const InfoRow = ({ label, value }) => (
+  <div className="bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+    <p className="text-[10px] uppercase tracking-widest text-gray-500">{label}</p>
+    <p className="text-xs text-white mt-1 break-all">{value}</p>
   </div>
 );
 

@@ -19,6 +19,7 @@ import { createNotification } from "../services/notifications";
 import Aside from "../layout/Aside";
 import UserNavbar from "../components/UserNavbar";
 import { useTheme } from "../context/ThemeContext";
+import NotificationToast from "../components/NotificationToast";
 
 const UserSettings = () => {
   const navigate = useNavigate();
@@ -46,13 +47,27 @@ const UserSettings = () => {
     idType: "Passport",
     idNumber: "",
     documentName: "",
+    documentPreview: "",
+    documentMime: "",
     status: "Not Submitted",
   });
   const [previewImage, setPreviewImage] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUid, setCurrentUid] = useState("");
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    message: "",
+    type: "info",
+  });
   const fileInputRef = React.useRef(null);
   const kycDocInputRef = React.useRef(null);
+
+  const showToast = (message, type = "info") => {
+    setNotification({ isOpen: false, message: "", type: "info" });
+    setTimeout(() => {
+      setNotification({ isOpen: true, message, type });
+    }, 10);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
@@ -89,6 +104,8 @@ const UserSettings = () => {
           idType: profile.kyc.idType || "Passport",
           idNumber: profile.kyc.idNumber || "",
           documentName: profile.kyc.documentName || "",
+          documentPreview: profile.kyc.documentPreview || "",
+          documentMime: profile.kyc.documentMime || "",
           status: profile.kyc.status || "Not Submitted",
         });
       }
@@ -141,7 +158,7 @@ const UserSettings = () => {
       "Personal information was updated successfully.",
       "success",
     );
-    alert("Personal information updated successfully!");
+    showToast("Personal information updated successfully!", "success");
   };
 
   const handlePasswordChange = (e) => {
@@ -155,24 +172,24 @@ const UserSettings = () => {
 
   const handleUpdatePassword = async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      alert("Please fill in all password fields");
+      showToast("Please fill in all password fields", "warning");
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords do not match");
+      showToast("New passwords do not match", "warning");
       return;
     }
 
     if (passwordData.newPassword.length < 8) {
-      alert("Password must be at least 8 characters long");
+      showToast("Password must be at least 8 characters long", "warning");
       return;
     }
 
     try {
       const currentUser = auth.currentUser;
       if (!currentUser || !currentUser.email) {
-        alert("No active session found");
+        showToast("No active session found", "error");
         return;
       }
 
@@ -189,14 +206,14 @@ const UserSettings = () => {
         "Password changed successfully.",
         "success",
       );
-      alert("Password updated successfully!");
+      showToast("Password updated successfully!", "success");
     } catch (error) {
       await pushNotification(
         "Security Error",
         error?.message || "Unable to update password",
         "error",
       );
-      alert(error?.message || "Unable to update password");
+      showToast(error?.message || "Unable to update password", "error");
     }
   };
 
@@ -204,7 +221,7 @@ const UserSettings = () => {
     try {
       const email = auth.currentUser?.email || user.email;
       if (!email) {
-        alert("No email found for reset");
+        showToast("No email found for reset", "error");
         return;
       }
       await sendPasswordResetEmail(auth, email);
@@ -213,14 +230,14 @@ const UserSettings = () => {
         "Password reset link sent to your email.",
         "info",
       );
-      alert("Password reset link has been sent to your email address.");
+      showToast("Password reset link has been sent to your email address.", "success");
     } catch (error) {
       await pushNotification(
         "Password Reset Failed",
         error?.message || "Unable to send reset link",
         "error",
       );
-      alert(error?.message || "Unable to send reset link");
+      showToast(error?.message || "Unable to send reset link", "error");
     }
   };
 
@@ -250,13 +267,32 @@ const UserSettings = () => {
   const handleKycDocumentChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setKycData((prev) => ({ ...prev, documentName: file.name }));
+    if (!file.type.startsWith("image/")) {
+      setKycData((prev) => ({
+        ...prev,
+        documentName: file.name,
+        documentPreview: "",
+        documentMime: file.type || "",
+      }));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setKycData((prev) => ({
+        ...prev,
+        documentName: file.name,
+        documentPreview: String(reader.result || ""),
+        documentMime: file.type || "",
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmitKyc = async () => {
     if (!currentUid) return;
     if (!kycData.legalName || !kycData.country || !kycData.idNumber) {
-      alert("Please complete all required KYC fields.");
+      showToast("Please complete all required KYC fields.", "warning");
       return;
     }
 
@@ -272,10 +308,16 @@ const UserSettings = () => {
       "Your KYC details were submitted and are under review.",
       "success",
     );
-    alert("KYC submitted successfully.");
+    showToast("KYC submitted successfully.", "success");
   };
   return (
     <div className="bg-black text-white font-sans overflow-hidden flex h-screen">
+      <NotificationToast
+        isOpen={notification.isOpen}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+      />
       {/* Mobile Navbar */}
       <UserNavbar 
         isMobileMenuOpen={isMobileMenuOpen} 
@@ -570,6 +612,13 @@ const UserSettings = () => {
                   <p className="text-xs text-gray-400">
                     {kycData.documentName || "No file selected"}
                   </p>
+                  {kycData.documentPreview && (
+                    <img
+                      src={kycData.documentPreview}
+                      alt="KYC document preview"
+                      className="mt-2 h-20 w-32 object-cover rounded border border-white/20"
+                    />
+                  )}
                 </div>
               </div>
               <div className="flex gap-3">
